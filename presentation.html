@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>โครงการแข่งขันทางวิชาการทางเศรษฐศาสตร์ ครั้งที่ 2</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --primary-green: #047857; /* Emerald Green */
+            --primary-light: #d1fae5;
+            --accent-gold: #d97706;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            font-family: 'Sarabun', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* --- Main Presentation App Window --- */
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- เอฟเฟกต์ Canvas (Particle Network) --- */
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Animated Background Curves */
+        .bg-curve {
+            position: absolute;
+            bottom: -20%;
+            left: -10%;
+            width: 120%;
+            height: 50%;
+            background: linear-gradient(to top, rgba(16, 185, 129, 0.05), transparent);
+            border-top: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 50% 50% 0 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-curve-2 {
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 140%;
+            height: 60%;
+            background: linear-gradient(to top, rgba(4, 120, 87, 0.03), transparent);
+            border-top: 1px solid rgba(4, 120, 87, 0.1);
+            border-radius: 50% 50% 0 0;
+            z-index: 0;
+            pointer-events: none;
+            transform: rotate(-5deg);
+        }
+
+        /* --- เอฟเฟกต์หน้าปก --- */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+            animation: floatOrb 10s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 400px; height: 400px; background: rgba(4, 120, 87, 0.08); top: 10%; left: 10%; }
+        .orb-2 { width: 500px; height: 500px; background: rgba(217, 119, 6, 0.05); bottom: 10%; right: 5%; animation-delay: -5s; }
+        .orb-3 { width: 300px; height: 300px; background: rgba(16, 185, 129, 0.06); top: 40%; right: 20%; animation-delay: -2s; animation-duration: 12s;}
+
+        @keyframes floatOrb {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(-40px) scale(1.1); }
+        }
+
+        .cover-content-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 10px 20px rgba(4, 120, 87, 0.2); }
+            50% { box-shadow: 0 15px 30px rgba(4, 120, 87, 0.5), 0 0 15px rgba(4, 120, 87, 0.3); transform: translateY(-3px); }
+            100% { box-shadow: 0 10px 20px rgba(4, 120, 87, 0.2); }
+        }
+
+        /* --- Slide Navigator --- */
+        .slide-section {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.6s ease;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            padding: 50px 80px;
+        }
+
+        .slide-hidden-up { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+        .slide-hidden-down { transform: translateY(100%); opacity: 0; pointer-events: none; }
+
+        /* =========================================
+           SLIDE 1: COVER
+           ========================================= */
+        #slide1 { justify-content: center; align-items: center; text-align: center; background-color: transparent; perspective: 1000px; }
+
+        .univ-logo-placeholder {
+            width: 80px; height: 80px; background: var(--primary-light); color: var(--primary-green);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(4, 120, 87, 0.1);
+            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateZ(30px);
+        }
+
+        .cover-subtitle {
+            font-family: 'Prompt', sans-serif; color: var(--primary-green); font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; font-size: 1rem;
+            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.15s;
+            opacity: 0;
+            transform: translateZ(40px);
+        }
+
+        .cover-title {
+            font-family: 'Prompt', sans-serif; font-size: 3.5rem; color: var(--text-dark);
+            font-weight: 700; line-height: 1.2; margin-bottom: 40px;
+            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.3s;
+            opacity: 0;
+            transform: translateZ(50px);
+        }
+
+        .event-details-box {
+            display: flex; gap: 40px; background: var(--bg-card); padding: 20px 50px;
+            border-radius: 100px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color); margin-bottom: 50px;
+            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.45s;
+            opacity: 0;
+            transform: translateZ(40px);
+        }
+
+        .event-item { display: flex; align-items: center; gap: 12px; color: var(--text-dark); }
+        .event-item i { color: var(--primary-green); font-size: 1.5rem; }
+        .event-text { display: flex; flex-direction: column; text-align: left; }
+        .event-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .event-value { font-family: 'Prompt', sans-serif; font-size: 1.1rem; font-weight: 600; }
+
+        .enter-btn {
+            background: var(--primary-green); color: #fff; border: none; padding: 15px 40px;
+            border-radius: 50px; font-family: 'Prompt', sans-serif; font-size: 1.2rem;
+            font-weight: 500; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(4, 120, 87, 0.2); display: flex; align-items: center; gap: 10px;
+            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.6s, pulseGlow 2.5s infinite 1.5s;
+            opacity: 0;
+            transform: translateZ(30px);
+        }
+
+        .enter-btn:hover { background: #065f46; transform: translateZ(30px) scale(1.05) !important; animation-play-state: paused; }
+
+        /* =========================================
+           SLIDE 2: SCHEDULE (AGENDA)
+           ========================================= */
+        .agenda-container {
+            background: var(--bg-card); border-radius: 20px; padding: 30px 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color); flex-grow: 1; overflow-y: auto; margin-top: 20px;
+        }
+        .agenda-table { width: 100%; border-collapse: collapse; }
+        .agenda-table th, .agenda-table td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .agenda-table th { background-color: var(--primary-light); color: var(--primary-green); font-family: 'Prompt', sans-serif; font-size: 1.2rem; font-weight: 600; position: sticky; top: 0; z-index: 2; }
+        .agenda-table tr:last-child td { border-bottom: none; }
+        .agenda-table tr:hover { background-color: rgba(4, 120, 87, 0.02); }
+        .agenda-time { font-family: 'Prompt', sans-serif; font-weight: 600; color: var(--accent-gold); white-space: nowrap; width: 220px; vertical-align: top; font-size: 1.1rem; }
+        .agenda-detail { color: var(--text-dark); line-height: 1.6; font-size: 1.1rem; }
+        .agenda-detail i { color: var(--primary-green); width: 25px; margin-right: 5px; text-align: center; }
+        .agenda-speaker { display: block; font-size: 0.95rem; color: var(--text-muted); margin-top: 5px; font-weight: 400; }
+
+        /* =========================================
+           SLIDE 3: RULES & SCORING
+           ========================================= */
+        .rules-scoring-container {
+            display: flex; gap: 30px; margin-top: 20px; flex-grow: 1; overflow-y: auto;
+        }
+        .rule-card, .score-card {
+            flex: 1; background: var(--bg-card); border-radius: 20px; padding: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+        }
+        .rule-list { list-style: none; padding: 0; font-size: 1.1rem; line-height: 1.6; color: var(--text-dark); }
+        .rule-list li { margin-bottom: 20px; display: flex; gap: 15px; }
+        .rule-list i { color: var(--accent-gold); font-size: 1.6rem; margin-top: 3px; flex-shrink: 0; width: 30px; text-align: center; }
+        .score-item { 
+            background: rgba(4, 120, 87, 0.04); border: 1px solid rgba(4, 120, 87, 0.15); 
+            border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between; 
+            align-items: center; margin-bottom: 12px;
+        }
+        .score-item.highlight-score {
+            background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.3);
+        }
+
+        /* =========================================
+           SLIDE 4: COMMITTEE
+           ========================================= */
+        .committee-grid {
+            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; 
+            margin-top: 20px; flex-grow: 1; overflow-y: auto; align-content: flex-start;
+        }
+        .committee-card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; 
+            padding: 25px 20px; text-align: center; width: calc(33.333% - 15px); max-width: 320px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .committee-card:hover {
+            transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-color: var(--primary-light);
+        }
+        .committee-img-wrap {
+            width: 110px; height: 110px; border-radius: 50%;
+            background: var(--primary-light); display: flex; justify-content: center; align-items: center;
+            border: 3px solid var(--primary-green); overflow: hidden;
+            transition: all 0.3s;
+        }
+        .committee-img-wrap:hover { filter: brightness(0.9); border-color: var(--primary-green) !important; }
+        .committee-img { width: 100%; height: 100%; object-fit: cover; }
+        .committee-name { font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; line-height: 1.3;}
+        .committee-title { font-size: 0.95rem; color: var(--text-muted); line-height: 1.4; }
+
+        /* =========================================
+           SLIDE 5: DASHBOARD
+           ========================================= */
+        .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; }
+        .dash-title-group h2 { font-family: 'Prompt', sans-serif; font-size: 2.5rem; color: var(--text-dark); line-height: 1.2; }
+        .dash-title-group p { color: var(--primary-green); font-family: 'Prompt', sans-serif; font-weight: 500; }
+        
+        .back-btn {
+            background: none; border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            font-family: 'Prompt', sans-serif; color: var(--text-muted); transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+        }
+        .back-btn:hover { background: var(--bg-card); color: var(--text-dark); }
+
+        .articles-grid { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; overflow-y: auto; padding-right: 10px; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+        .articles-grid::-webkit-scrollbar { width: 5px; }
+        .articles-grid::-webkit-scrollbar-track { background: transparent; }
+        .articles-grid::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .article-card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 25px;
+            display: flex; align-items: center; gap: 20px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02); position: relative; overflow: hidden; flex-shrink: 0;
+        }
+        .article-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary-green);
+            transform: scaleY(0); transition: transform 0.3s ease; transform-origin: bottom;
+        }
+        .article-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.08); transform: translateX(5px); border-color: var(--primary-light); }
+        .article-card:hover::before { transform: scaleY(1); }
+
+        .article-number { font-family: 'Prompt', sans-serif; font-size: 2rem; font-weight: 700; color: var(--border-color); min-width: 50px; transition: color 0.3s; }
+        .article-card:hover .article-number { color: var(--primary-green); }
+        .article-content { flex-grow: 1; }
+        .article-title { font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; line-height: 1.4; }
+        .article-author { color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .read-more-icon {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); display: flex; justify-content: center; align-items: center;
+            color: var(--text-muted); transition: all 0.3s; flex-shrink: 0;
+        }
+
+        /* =========================================
+           SIDE PANEL (Details)
+           ========================================= */
+        .side-panel {
+            position: absolute; top: 0; right: 0; width: 750px; max-width: 100vw; height: 100%; background: var(--bg-card);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1); z-index: 100; transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.8, 0, 0.2, 1); display: flex; flex-direction: column;
+        }
+        .side-panel.open { transform: translateX(0); }
+
+        .panel-header { padding: 30px 40px 15px 40px; background: var(--bg-main); border-bottom: 1px solid var(--border-color); position: relative; }
+        
+        .close-panel-btn {
+            position: absolute; top: 20px; left: -25px; width: 50px; height: 50px; background: var(--bg-card);
+            border: 1px solid var(--border-color); border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: -5px 5px 15px rgba(0,0,0,0.05); color: var(--text-dark); font-size: 1.2rem; transition: all 0.2s; z-index: 101;
+        }
+        .close-panel-btn:hover { color: var(--primary-green); transform: scale(1.1); }
+
+        .panel-topic { font-family: 'Prompt', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; line-height: 1.3; }
+        .panel-author { color: var(--primary-green); font-weight: 500; font-size: 0.95rem; }
+
+        /* Panel Tabs */
+        .panel-tabs {
+            display: flex; background: var(--bg-main); padding: 0 20px; border-bottom: 1px solid var(--border-color); overflow-x: auto; -webkit-overflow-scrolling: touch;
+        }
+        .panel-tabs::-webkit-scrollbar { display: none; }
+        .p-tab {
+            padding: 15px 15px; border: none; background: none; font-family: 'Prompt', sans-serif; font-size: 1rem; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;
+        }
+        .p-tab.active { color: var(--primary-green); border-bottom-color: var(--primary-green); }
+
+        /* Panel Body */
+        .panel-body {
+            flex-grow: 1; padding: 20px 40px; overflow-y: auto; color: var(--text-dark); font-size: 1.05rem; line-height: 1.6;
+            scroll-behavior: smooth; -webkit-overflow-scrolling: touch; 
+        }
+        .content-section { margin-bottom: 40px; }
+        .section-heading { font-family: 'Prompt', sans-serif; color: var(--primary-green); font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .panel-body ul { padding-left: 0; list-style: none; }
+        .panel-body li { margin-bottom: 15px; padding-left: 25px; position: relative; }
+        .panel-body li::before { content: '■'; color: var(--primary-light); -webkit-text-stroke: 1px var(--primary-green); position: absolute; left: 0; top: 0; font-size: 1.2rem; }
+        .highlight { background-color: var(--primary-light); color: var(--primary-green); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .question-box { background: #fffbeb; border-left: 4px solid var(--accent-gold); padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; font-style: italic; }
+
+        /* Framework Styles */
+        .framework-container-flex { display: flex; align-items: center; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap; }
+        .framework-group { display: flex; flex-direction: column; gap: 12px; background: rgba(4, 120, 87, 0.03); padding: 25px; border-radius: 12px; border: 2px dashed rgba(4, 120, 87, 0.3); min-width: 250px;}
+        .framework-group-title { text-align: center; font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--primary-green); margin-bottom: 15px; font-size: 1.1rem; }
+        .framework-box { background: var(--bg-card); border: 2px solid var(--primary-green); border-radius: 8px; padding: 12px 15px; text-align: center; font-weight: 600; color: var(--text-dark); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .framework-box.dependent { border-color: var(--accent-gold); background: #fffbeb; font-size: 1.1rem; padding: 20px; }
+        .framework-arrow { display: flex; align-items: center; justify-content: center; color: var(--primary-green); font-size: 2.5rem; }
+        
+        /* Image & Table Styles */
+        .results-img-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
+        .results-img-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;}
+        .results-img-card:hover { transform: scale(1.03); }
+        .results-img-card img { max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 10px; border: 1px solid #e2e8f0; background-color: #f1f5f9; }
+        .results-img-caption { font-size: 0.95rem; color: var(--text-dark); font-weight: 600; line-height: 1.2; }
+
+        .data-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--bg-card); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 0.95rem; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background-color: var(--primary-light); color: var(--primary-green); font-family: 'Prompt', sans-serif; font-weight: 600; }
+        .data-table tr:hover { background-color: rgba(209, 250, 229, 0.2); }
+
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+
+        /* =========================================
+           RESPONSIVE MOBILE STYLES
+           ========================================= */
+        @media (max-width: 768px) {
+            .slide-section { padding: 30px 20px; }
+            .cover-title { font-size: 2.2rem; }
+            .event-details-box { flex-direction: column; gap: 20px; padding: 25px 30px; border-radius: 20px; }
+            .enter-btn { width: 100%; justify-content: center; }
+            .cover-content-wrapper { transform: none !important; } /* ปิด 3D บนมือถือ */
+            .dash-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .dash-title-group h2 { font-size: 1.8rem; }
+            .article-card { padding: 15px; gap: 15px; }
+            .article-number { font-size: 1.5rem; min-width: 40px; }
+            .article-title { font-size: 1.05rem; }
+            .read-more-icon { display: none; }
+            .panel-header { padding: 50px 20px 15px 20px; }
+            .panel-topic { font-size: 1.15rem; }
+            .close-panel-btn { top: 10px; right: 15px; left: auto; width: 40px; height: 40px; }
+            .panel-body { padding: 20px 20px; }
+            .results-img-grid { grid-template-columns: 1fr; }
+            .data-table { font-size: 0.85rem; }
+            .data-table th, .data-table td { padding: 10px; }
+            .profile-group { flex-direction: column; align-items: flex-start !important; }
+            .desktop-divider { display: none; }
+            .agenda-time { width: auto; display: block; margin-bottom: 5px; }
+            .rules-scoring-container { flex-direction: column !important; gap: 20px; }
+            .committee-card { width: 100%; max-width: 100%; }
+            .framework-container-flex { flex-direction: column; } 
+            .framework-arrow { transform: rotate(90deg); margin: 10px 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- พื้นหลัง Interactive Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Background Curves & Orbs -->
+    <div class="bg-curve"></div>
+    <div class="bg-curve-2"></div>
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+
+    <!-- SLIDE 1: COVER -->
+    <div class="slide-section" id="slide1">
+        <div class="cover-content-wrapper" id="coverTiltWrapper">
+            <div class="univ-logo-placeholder">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <div class="cover-subtitle">Final Round Presentations</div>
+            <h1 class="cover-title">โครงการแข่งขันทางวิชาการ<br>ทางเศรษฐศาสตร์ ครั้งที่ 2</h1>
+            
+            <div class="event-details-box">
+                <div class="event-item">
+                    <i class="fa-regular fa-calendar-check"></i>
+                    <div class="event-text">
+                        <span class="event-label">วันที่จัดงาน</span>
+                        <span class="event-value">27 กุมภาพันธ์ 2569</span>
+                    </div>
+                </div>
+                <div class="event-item">
+                    <i class="fa-regular fa-clock"></i>
+                    <div class="event-text">
+                        <span class="event-label">เวลา</span>
+                        <span class="event-value">13.00 - 16.00 น.</span>
+                    </div>
+                </div>
+                <div class="event-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div class="event-text">
+                        <span class="event-label">สถานที่</span>
+                        <span class="event-value">ห้อง 18510</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="enter-btn" onclick="goToSlide('slide2')">
+                เข้าสู่งานนำเสนอ <i class="fa-solid fa-arrow-right-long"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: SCHEDULE (AGENDA) -->
+    <div class="slide-section slide-hidden-down" id="slide2">
+        <div class="dash-header" style="align-items: center;">
+            <button class="back-btn" onclick="goToSlide('slide1')" style="margin-bottom: 0;">
+                <i class="fa-solid fa-arrow-left"></i> หน้าปก
+            </button>
+            <div class="dash-title-group" style="text-align: center; flex-grow: 1;">
+                <p>AGENDA</p>
+                <h2>รายละเอียดของโครงการ</h2>
+            </div>
+            <button class="enter-btn" onclick="goToSlide('slide3')" style="padding: 10px 25px; font-size: 1.1rem; margin-bottom: 0;">
+                กติกาการแข่งขัน <i class="fa-solid fa-arrow-right-long"></i>
+            </button>
+        </div>
+
+        <div class="agenda-container">
+            <h3 style="font-family: 'Prompt'; color: var(--primary-green); margin-bottom: 20px; text-align: center; font-size: 1.4rem;">
+                <i class="fa-regular fa-calendar-days"></i> วันศุกร์ที่ 27 กุมภาพันธ์ 2569
+            </h3>
+            <table class="agenda-table">
+                <thead>
+                    <tr>
+                        <th style="width: 250px;">วัน – เวลา</th>
+                        <th>รายละเอียดการดำเนินงาน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="agenda-time">13.00 – 13.30 น.</td>
+                        <td class="agenda-detail"><i class="fa-solid fa-clipboard-user"></i> ลงทะเบียนเข้าร่วมงาน</td>
+                    </tr>
+                    <tr>
+                        <td class="agenda-time">13.30 – 13.40 น.</td>
+                        <td class="agenda-detail">
+                            <i class="fa-solid fa-microphone"></i> กล่าวต้อนรับและชี้แจงความสำคัญของโครงการ 
+                            <span class="agenda-speaker">โดย ดร.พินิจ ดวงจินดา คณบดีคณะเศรษฐศาสตร์และบริหารธุรกิจ มหาวิทยาลัยทักษิณ</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="agenda-time">13.40 – 14.00 น.</td>
+                        <td class="agenda-detail"><i class="fa-solid fa-gavel"></i> ชี้แจงกติกาการแข่งขัน และการให้คะแนนในการแข่งขัน</td>
+                    </tr>
+                    <tr>
+                        <td class="agenda-time">14.00 – 15.30 น.</td>
+                        <td class="agenda-detail"><i class="fa-solid fa-person-chalkboard"></i> การนำเสนอบทความทางเศรษฐศาสตร์ทั้งหมด 5 บทความ</td>
+                    </tr>
+                    <tr>
+                        <td class="agenda-time">15.30 – 15.45 น.</td>
+                        <td class="agenda-detail"><i class="fa-solid fa-calculator"></i> ช่วงการรวบรวมคะแนน</td>
+                    </tr>
+                    <tr>
+                        <td class="agenda-time">15.45 – 16.00 น.</td>
+                        <td class="agenda-detail"><i class="fa-solid fa-trophy"></i> ประกาศผลรางวัลการนำเสนอ และมอบรางวัลการนำเสนอบทความ</td>
+                    </tr>
+                    <tr>
+                        <td class="agenda-time">16.00 – 16.30 น.</td>
+                        <td class="agenda-detail">
+                            <i class="fa-solid fa-door-closed"></i> กล่าวปิดโครงการ 
+                            <span class="agenda-speaker">โดย ดร.พินิจ ดวงจินดา คณบดีคณะเศรษฐศาสตร์และบริหารธุรกิจ มหาวิทยาลัยทักษิณ</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: RULES & SCORING -->
+    <div class="slide-section slide-hidden-down" id="slide3">
+        <div class="dash-header" style="align-items: center;">
+            <button class="back-btn" onclick="goToSlide('slide2')" style="margin-bottom: 0;">
+                <i class="fa-solid fa-arrow-left"></i> กำหนดการ
+            </button>
+            <div class="dash-title-group" style="text-align: center; flex-grow: 1;">
+                <p>RULES & SCORING</p>
+                <h2>กติกาและเกณฑ์การให้คะแนน</h2>
+            </div>
+            <button class="enter-btn" onclick="goToSlide('slide4')" style="padding: 10px 25px; font-size: 1.1rem; margin-bottom: 0;">
+                คณะกรรมการ <i class="fa-solid fa-arrow-right-long"></i>
+            </button>
+        </div>
+
+        <div class="rules-scoring-container">
+            <!-- Left Panel: Rules -->
+            <div class="rule-card">
+                <h3 style="font-family: 'Prompt'; color: var(--primary-green); margin-bottom: 25px; font-size: 1.4rem;">
+                    <i class="fa-solid fa-list-check"></i> กติกาการแข่งขัน
+                </h3>
+                <ul class="rule-list">
+                    <li>
+                        <i class="fa-solid fa-stopwatch"></i>
+                        <div>
+                            <strong>การจัดสรรเวลา:</strong> แต่ละกลุ่มมีเวลานำเสนอ 10 นาที และเวลาสำหรับตอบคำถาม 15 นาที รวมเป็น 25 นาทีต่อหนึ่งผลงาน
+                            <div style="color: #ef4444; font-size: 0.95rem; margin-top: 5px; background: #fef2f2; padding: 5px 10px; border-radius: 5px; border-left: 3px solid #ef4444;">
+                                * เมื่อเวลานำเสนอผ่านไป 8 นาที จะมีการแจ้งเตือนว่าเหลือเวลาอีก 2 นาที
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <div>
+                            <strong>ความโปร่งใสและเป็นธรรม:</strong> อาจารย์ที่ปรึกษาจะ <u>ไม่มีสิทธิ์</u> ลงคะแนนให้แก่นิสิตในความดูแลของตนเอง
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-bell"></i>
+                        <div>
+                            <strong>การเตือนหมดเวลา:</strong> เมื่อเวลานำเสนอครบ 10 นาที ผู้จัดการแข่งขันจะแจ้งเตือนอีกครั้ง และขอให้ผู้นำเสนอหยุดการนำเสนอ เพื่อเข้าสู่ช่วงตอบคำถามทันที
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Right Panel: Scoring -->
+            <div class="score-card">
+                <h3 style="font-family: 'Prompt'; color: var(--primary-green); margin-bottom: 25px; font-size: 1.4rem;">
+                    <i class="fa-solid fa-star"></i> เกณฑ์การให้คะแนน (50 คะแนน)
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    
+                    <div class="score-item">
+                        <div>
+                            <div style="font-family: 'Prompt'; font-weight: 600; font-size: 1.15rem; color: var(--text-dark);">3.1 ความน่าสนใจของหัวข้อ</div>
+                        </div>
+                        <div style="background: var(--primary-green); color: white; padding: 6px 15px; border-radius: 20px; font-weight: bold; font-family: 'Prompt';">10 คะแนน</div>
+                    </div>
+
+                    <div class="score-item">
+                        <div>
+                            <div style="font-family: 'Prompt'; font-weight: 600; font-size: 1.15rem; color: var(--text-dark);">3.2 การนำเสนอและสื่อการนำเสนอ</div>
+                        </div>
+                        <div style="background: var(--primary-green); color: white; padding: 6px 15px; border-radius: 20px; font-weight: bold; font-family: 'Prompt';">10 คะแนน</div>
+                    </div>
+
+                    <div class="score-item">
+                        <div>
+                            <div style="font-family: 'Prompt'; font-weight: 600; font-size: 1.15rem; color: var(--text-dark);">3.3 การตอบคำถาม</div>
+                        </div>
+                        <div style="background: var(--primary-green); color: white; padding: 6px 15px; border-radius: 20px; font-weight: bold; font-family: 'Prompt';">10 คะแนน</div>
+                    </div>
+
+                    <div class="score-item highlight-score" style="margin-top: 5px;">
+                        <div>
+                            <div style="font-family: 'Prompt'; font-weight: 700; font-size: 1.2rem; color: var(--accent-gold);">3.4 ความถูกต้องตามหลักวิชาการ<br>และความสมบูรณ์ของบทความ</div>
+                        </div>
+                        <div style="background: var(--accent-gold); color: white; padding: 8px 18px; border-radius: 20px; font-weight: bold; font-family: 'Prompt'; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);">20 คะแนน</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: COMMITTEE -->
+    <div class="slide-section slide-hidden-down" id="slide4">
+        <div class="dash-header" style="align-items: center;">
+            <button class="back-btn" onclick="goToSlide('slide3')" style="margin-bottom: 0;">
+                <i class="fa-solid fa-arrow-left"></i> กติกา
+            </button>
+            <div class="dash-title-group" style="text-align: center; flex-grow: 1;">
+                <p>COMMITTEE</p>
+                <h2>คณะกรรมการตัดสินการแข่งขัน</h2>
+            </div>
+            <button class="enter-btn" onclick="goToSlide('slide5')" style="padding: 10px 25px; font-size: 1.1rem; margin-bottom: 0;">
+                รายชื่อบทความ <i class="fa-solid fa-arrow-right-long"></i>
+            </button>
+        </div>
+
+        <div class="committee-grid">
+            <!-- คนที่ 1 -->
+            <div class="committee-card">
+                <div style="position: relative; width: 110px; margin: 0 auto 15px;">
+                    <div class="committee-img-wrap" style="margin: 0; cursor: pointer;" onclick="document.getElementById('upload-comm1').click()" title="คลิกเพื่อเปลี่ยนรูป">
+                        <input type="file" id="upload-comm1" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-comm1', 'savedImgComm1')">
+                        <img id="img-comm1" src="https://ui-avatars.com/api/?name=พินิจ&background=047857&color=fff&size=128" alt="อาจารย์ ดร.พินิจ ดวงจินดา" class="committee-img">
+                    </div>
+                    <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-green); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #fff; pointer-events: none;"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                <div class="committee-name">อาจารย์ ดร.พินิจ ดวงจินดา</div>
+                <div class="committee-title">คณบดีคณะเศรษฐศาสตร์และบริหารธุรกิจ</div>
+            </div>
+            
+            <!-- คนที่ 2 -->
+            <div class="committee-card">
+                <div style="position: relative; width: 110px; margin: 0 auto 15px;">
+                    <div class="committee-img-wrap" style="margin: 0; cursor: pointer; border-color: var(--accent-gold);" onclick="document.getElementById('upload-comm2').click()" title="คลิกเพื่อเปลี่ยนรูป">
+                        <input type="file" id="upload-comm2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-comm2', 'savedImgComm2')">
+                        <img id="img-comm2" src="https://ui-avatars.com/api/?name=บุษกร&background=d97706&color=fff&size=128" alt="ผศ.บุษกร ถาวรประสิทธิ์" class="committee-img">
+                    </div>
+                    <div style="position: absolute; bottom: 0; right: 0; background: var(--accent-gold); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #fff; pointer-events: none;"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                <div class="committee-name">ผศ.บุษกร ถาวรประสิทธิ์</div>
+                <div class="committee-title">อาจารย์ประจำหลักสูตรเศรษฐศาสตร์</div>
+            </div>
+
+            <!-- คนที่ 3 -->
+            <div class="committee-card">
+                <div style="position: relative; width: 110px; margin: 0 auto 15px;">
+                    <div class="committee-img-wrap" style="margin: 0; cursor: pointer;" onclick="document.getElementById('upload-comm3').click()" title="คลิกเพื่อเปลี่ยนรูป">
+                        <input type="file" id="upload-comm3" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-comm3', 'savedImgComm3')">
+                        <img id="img-comm3" src="https://ui-avatars.com/api/?name=อับดุลฮากิม&background=047857&color=fff&size=128" alt="ดร.อับดุลฮากิม มะดีเยาะ" class="committee-img">
+                    </div>
+                    <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-green); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #fff; pointer-events: none;"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                <div class="committee-name">ดร.อับดุลฮากิม มะดีเยาะ</div>
+                <div class="committee-title">ผู้ช่วยคณบดีฝ่ายบริการวิชาการ<br>และชุมชนสัมพันธ์</div>
+            </div>
+
+            <!-- คนที่ 4 -->
+            <div class="committee-card">
+                <div style="position: relative; width: 110px; margin: 0 auto 15px;">
+                    <div class="committee-img-wrap" style="margin: 0; cursor: pointer; border-color: var(--accent-gold);" onclick="document.getElementById('upload-comm4').click()" title="คลิกเพื่อเปลี่ยนรูป">
+                        <input type="file" id="upload-comm4" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-comm4', 'savedImgComm4')">
+                        <img id="img-comm4" src="https://ui-avatars.com/api/?name=พงศภัค&background=d97706&color=fff&size=128" alt="อาจารย์พงศภัค เเซ่เลี่ยว" class="committee-img">
+                    </div>
+                    <div style="position: absolute; bottom: 0; right: 0; background: var(--accent-gold); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #fff; pointer-events: none;"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                <div class="committee-name">อาจารย์พงศภัค เเซ่เลี่ยว</div>
+                <div class="committee-title">อาจารย์ประจำหลักสูตรเศรษฐศาสตร์</div>
+            </div>
+
+            <!-- คนที่ 5 -->
+            <div class="committee-card">
+                <div style="position: relative; width: 110px; margin: 0 auto 15px;">
+                    <div class="committee-img-wrap" style="margin: 0; cursor: pointer;" onclick="document.getElementById('upload-comm5').click()" title="คลิกเพื่อเปลี่ยนรูป">
+                        <input type="file" id="upload-comm5" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-comm5', 'savedImgComm5')">
+                        <img id="img-comm5" src="https://ui-avatars.com/api/?name=ธนากร&background=047857&color=fff&size=128" alt="อาจารย์ธนากร แสนสาร" class="committee-img">
+                    </div>
+                    <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-green); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #fff; pointer-events: none;"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                <div class="committee-name">อาจารย์ธนากร แสนสาร</div>
+                <div class="committee-title">ผู้ช่วยคณบดีฝ่ายพัฒนานิสิต<br>และศิษย์เก่าสัมพันธ์</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: DASHBOARD -->
+    <div class="slide-section slide-hidden-down" id="slide5">
+        <div class="dash-header">
+            <div class="dash-title-group">
+                <p>SESSION 01: ECONOMIC RESEARCH</p>
+                <h2>รายชื่อบทความเข้ารอบตัดสิน</h2>
+            </div>
+            <button class="back-btn" onclick="goToSlide('slide4')"><i class="fa-solid fa-arrow-left"></i> กลับไปคณะกรรมการ</button>
+        </div>
+
+        <div class="articles-grid">
+            <!-- Article 1 -->
+            <div class="article-card" data-id="1">
+                <div class="article-number">01</div>
+                <div class="article-content">
+                    <div class="article-title">ความสัมพันธ์ระหว่างปริมาณการปล่อยก๊าซคาร์บอนไดออกไซด์กับการขยายตัวทางเศรษฐกิจภายใต้สมมติฐานเส้นโค้งสิ่งแวดล้อมคุซเน็ตส์</div>
+                    <div class="article-author"><i class="fa-solid fa-user-pen"></i> ธนวันต์ พิสุทธิ์กวิน และ พงศภัค แซ่เลี่ยว</div>
+                </div>
+                <div class="read-more-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+            <!-- Article 2 -->
+            <div class="article-card" data-id="2">
+                <div class="article-number">02</div>
+                <div class="article-content">
+                    <div class="article-title">การพยากรณ์แนวโน้มปริมาณการผลิต การนำเข้า และความต้องการใช้น้ำมันเชื้อเพลิงในประเทศไทยโดยใช้ตัวแบบ ARIMA</div>
+                    <div class="article-author"><i class="fa-solid fa-users"></i> ศศิประภา ทองเรือง และ อับดุลฮากิม มะดีเยาะ</div>
+                </div>
+                <div class="read-more-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+            <!-- Article 3 -->
+            <div class="article-card" data-id="3">
+                <div class="article-number">03</div>
+                <div class="article-content">
+                    <div class="article-title">เศรษฐศาสตร์ความสุขกับการพัฒนาเศรษฐกิจและความเป็นอยู่ที่ดีของประชาชน (Happiness Economics and Economic Development)</div>
+                    <div class="article-author"><i class="fa-solid fa-users"></i> จักรภัทร บุญญาภินิหาร และ ดร.ธนวิทย์ บุญสิทธิ์</div>
+                </div>
+                <div class="read-more-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+            <!-- Article 4 -->
+            <div class="article-card" data-id="4">
+                <div class="article-number">04</div>
+                <div class="article-content">
+                    <div class="article-title">ปัจจัยที่มีผลกระทบต่อระดับหนี้สาธารณะของประเทศในอาเซียน กรณีศึกษา มาเลเซีย สิงคโปร์ และไทย</div>
+                    <div class="article-author"><i class="fa-solid fa-users"></i> รัตนลักษณ์ ไล้คง และ ผศ. บุษกร ถาวรประสิทธิ์</div>
+                </div>
+                <div class="read-more-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+            <!-- Article 5 -->
+            <div class="article-card" data-id="5">
+                <div class="article-number">05</div>
+                <div class="article-content">
+                    <div class="article-title">การศึกษาการเป็นสินทรัพย์ปลอดภัยของทองคำและการเปรียบเทียบผลตอบแทนจากดัชนีตลาดหลักทรัพย์</div>
+                    <div class="article-author"><i class="fa-solid fa-users"></i> ภูนริช เดชแก้ว และ อ.ธนากร แสนสาร</div>
+                </div>
+                <div class="read-more-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+            
+            <div style="height: 20px; flex-shrink: 0;"></div>
+        </div>
+    </div>
+
+    <!-- OVERLAY & SIDE PANEL -->
+    <div class="overlay" id="panelOverlay"></div>
+    
+    <div class="side-panel" id="sidePanel">
+        <div class="close-panel-btn" id="closePanel"><i class="fa-solid fa-xmark"></i></div>
+        
+        <div class="panel-header">
+            <div class="panel-topic" id="panelTitle">ชื่อบทความ</div>
+            <div class="panel-author" id="panelAuthor">ผู้วิจัย</div>
+        </div>
+        
+        <div class="panel-tabs" id="panelTabs">
+            <!-- Tabs injected by JS -->
+        </div>
+
+        <div class="panel-body" id="panelContent">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Javascript -->
+<script>
+    // --- โหลดรูปภาพคณะกรรมการที่บันทึกไว้เมื่อเปิดหน้าเว็บ ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const commIds = [
+            { id: 'img-comm1', key: 'savedImgComm1' },
+            { id: 'img-comm2', key: 'savedImgComm2' },
+            { id: 'img-comm3', key: 'savedImgComm3' },
+            { id: 'img-comm4', key: 'savedImgComm4' },
+            { id: 'img-comm5', key: 'savedImgComm5' }
+        ];
+        commIds.forEach(item => {
+            const savedImg = localStorage.getItem(item.key);
+            if (savedImg) {
+                const imgEl = document.getElementById(item.id);
+                if (imgEl) imgEl.src = savedImg;
+            }
+        });
+    });
+
+    // --- เอฟเฟกต์พื้นหลังโครงข่ายจุด (Particle Network) ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particlesArray = [];
+    let mouse = { x: null, y: null, radius: 150 };
+
+    window.addEventListener('mousemove', function(event) {
+        mouse.x = event.x;
+        mouse.y = event.y;
+    });
+
+    window.addEventListener('mouseout', function() {
+        mouse.x = null;
+        mouse.y = null;
+    });
+
+    window.addEventListener('resize', function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initParticles();
+    });
+
+    class Particle {
+        constructor(x, y, directionX, directionY, size, color) {
+            this.x = x;
+            this.y = y;
+            this.directionX = directionX;
+            this.directionY = directionY;
+            this.size = size;
+            this.color = color;
+        }
+        // วาดจุด
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+        // อัปเดตตำแหน่ง
+        update() {
+            if (this.x > canvas.width || this.x < 0) { this.directionX = -this.directionX; }
+            if (this.y > canvas.height || this.y < 0) { this.directionY = -this.directionY; }
+            this.x += this.directionX;
+            this.y += this.directionY;
+            this.draw();
+        }
+    }
+
+    function initParticles() {
+        particlesArray = [];
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let numberOfParticles = (canvas.height * canvas.width) / 12000;
+        
+        // สุ่มสีระหว่าง เขียวมรกต และ สีทอง
+        const colors = ['rgba(4, 120, 87, 0.4)', 'rgba(217, 119, 6, 0.3)']; 
+
+        for (let i = 0; i < numberOfParticles; i++) {
+            let size = (Math.random() * 2) + 1;
+            let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+            let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+            let directionX = (Math.random() * 0.8) - 0.4;
+            let directionY = (Math.random() * 0.8) - 0.4;
+            let color = colors[Math.floor(Math.random() * colors.length)];
+            
+            particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+        }
+    }
+
+    function animateParticles() {
+        requestAnimationFrame(animateParticles);
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+        }
+        connectParticles();
+    }
+
+    // ลากเส้นเชื่อมระหว่างจุด และเชื่อมกับเมาส์
+    function connectParticles() {
+        let opacityValue = 1;
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a; b < particlesArray.length; b++) {
+                let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                               ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                if (distance < (canvas.width / 10) * (canvas.height / 10)) {
+                    opacityValue = 1 - (distance / 15000);
+                    ctx.strokeStyle = `rgba(100, 116, 139, ${opacityValue * 0.2})`; // เส้นสีเทาจางๆ
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+            // ลากเส้นเชื่อมกับเมาส์
+            if(mouse.x != null && mouse.y != null) {
+                let mouseDistance = ((particlesArray[a].x - mouse.x) * (particlesArray[a].x - mouse.x)) + 
+                                    ((particlesArray[a].y - mouse.y) * (particlesArray[a].y - mouse.y));
+                if (mouseDistance < 20000) {
+                    opacityValue = 1 - (mouseDistance / 20000);
+                    ctx.strokeStyle = `rgba(217, 119, 6, ${opacityValue * 0.4})`; // เส้นสีทองเมื่อใกล้เมาส์
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    initParticles();
+    animateParticles();
+
+    // --- 3D Hover Effect หน้าปก ---
+    const coverSlide = document.getElementById('slide1');
+    const tiltWrapper = document.getElementById('coverTiltWrapper');
+
+    coverSlide.addEventListener('mousemove', (e) => {
+        // ปิดการทำงานบนมือถือเพื่อป้องกันปัญหาการเลื่อนจอ
+        if (window.innerWidth <= 768) return; 
+
+        // คำนวณแกน X และ Y ให้เอียงตรงข้ามกับทิศทางเมาส์ (หาร 30 เพื่อให้สมูท ไม่หมุนมากไป)
+        const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
+        const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
+        
+        tiltWrapper.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+    });
+
+    coverSlide.addEventListener('mouseleave', () => {
+        // เมื่อเอาเมาส์ออก คืนค่าให้กลับมาตรงๆ
+        tiltWrapper.style.transition = 'transform 0.5s ease';
+        tiltWrapper.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        
+        // รีเซ็ต transition คืนเพื่อไม่ให้กวนเวลาขยับเมาส์
+        setTimeout(() => {
+            tiltWrapper.style.transition = 'transform 0.1s ease-out';
+        }, 500);
+    });
+
+    // --- ฟังก์ชันบันทึกรูปภาพให้อยู่ถาวรในเครื่อง (Local Storage) ---
+    function uploadAndSaveImage(input, imgId, storageKey) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                document.getElementById(imgId).src = base64Image;
+                localStorage.setItem(storageKey, base64Image);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    let currentArticleTitle = "";
+    let currentArticleAuthor = "";
+
+    // --- Slide Navigation ---
+    function goToSlide(targetId) {
+        // รายชื่อไอดีสไลด์ทั้งหมดในระบบ
+        const slides = ['slide1', 'slide2', 'slide3', 'slide4', 'slide5'];
+        const targetIndex = slides.indexOf(targetId);
+
+        slides.forEach((id, index) => {
+            const slide = document.getElementById(id);
+            // ลบคลาสซ่อนทั้งหมดออกก่อน
+            slide.classList.remove('slide-hidden-up', 'slide-hidden-down');
+            
+            // ถ้าหน้าปัจจบุันอยู่ก่อนหน้าเป้าหมาย ให้เลื่อนขึ้นไปซ่อนด้านบน
+            if (index < targetIndex) {
+                slide.classList.add('slide-hidden-up');
+            } 
+            // ถ้าหน้าปัจจุบันอยู่หลังเป้าหมาย ให้เลื่อนลงไปซ่อนด้านล่าง
+            else if (index > targetIndex) {
+                slide.classList.add('slide-hidden-down');
+            }
+        });
+    }
+
+    // --- Research Data ---
+    const researchData = {
+        "1": [
+            {
+                id: "intro", title: "ที่มาและวัตถุประสงค์",
+                content: `
+                    <div class="content-section" id="sec-intro">
+                        <!-- พื้นที่โชว์รูปคู่ (ผู้นำเสนอ & ที่ปรึกษา) บทความที่ 1 -->
+                        <div class="profile-group" style="display: flex; flex-wrap: wrap; align-items: center; gap: 25px; margin-bottom: 30px; padding: 20px; background: rgba(4, 120, 87, 0.05); border-radius: 12px; border: 1px solid rgba(4, 120, 87, 0.15);">
+                            
+                            <!-- 1. รูปนิสิตผู้นำเสนอ -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-student').click()" title="คลิกเพื่อเลือกรูปผู้นำเสนอ">
+                                    <input type="file" id="upload-student" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-student', 'savedStudentImg')">
+                                    <img id="img-student" src="169725085_760903318152833_5157368988821867893_n.jpg" alt="รูปผู้นำเสนอ" onerror="this.src='https://ui-avatars.com/api/?name=ผู้นำเสนอ&background=047857&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-green); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--accent-gold); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--primary-green); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-microphone-lines"></i> ผู้นำเสนอผลงาน</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">ธนวันต์ พิสุทธิ์กวิน</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+
+                            <div class="desktop-divider" style="width: 1px; height: 50px; background: rgba(4, 120, 87, 0.2); margin: 0 5px;"></div>
+
+                            <!-- 2. รูปอาจารย์ที่ปรึกษา -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-advisor').click()" title="คลิกเพื่อเลือกรูปอาจารย์ที่ปรึกษา">
+                                    <input type="file" id="upload-advisor" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-advisor', 'savedAdvisorImg')">
+                                    <img id="img-advisor" src="600354447_25402864172710667_5585266304337930958_n.jpg" alt="รูปอาจารย์ที่ปรึกษา" onerror="this.src='https://ui-avatars.com/api/?name=ที่ปรึกษา&background=d97706&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--primary-green); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--accent-gold); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-chalkboard-user"></i> อาจารย์ที่ปรึกษา</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">พงศภัค แซ่เลี่ยว</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-heading"><i class="fa-solid fa-earth-asia"></i> ที่มาและความสำคัญ</div>
+                        <p><strong>วิกฤตการณ์การเปลี่ยนแปลงสภาพภูมิอากาศ (Climate Change)</strong> เป็นความท้าทายระดับโลกที่มีสาเหตุหลักจากกิจกรรมทางเศรษฐกิจ ข้อมูลจาก IEA (2024) ระบุว่าปริมาณการปล่อย CO2 แตะระดับสูงสุดเป็นประวัติการณ์ที่ 37.8 พันล้านตัน</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">ทวีปเอเชีย ปล่อย CO2 สูงสุดถึง 52% ของโลก</span> และจัดอยู่ใน "พื้นที่วิกฤต" จากการพึ่งพาฟอสซิล</li>
+                            <li><span class="highlight">ดัชนีความซับซ้อนสีเขียว (GCI)</span> และ <span class="highlight">คุณภาพของสถาบัน (IQ)</span> เป็นตัวแปรใหม่ที่น่าสนใจในการวัดความสำเร็จของการลดมลพิษ</li>
+                            <li>งานวิจัยนี้อุดช่องว่างด้วยการใช้แบบจำลองที่มีความยืดหยุ่นสูง เพื่อหาจุดเปลี่ยนผ่านที่แท้จริงของเอเชีย</li>
+                        </ul>
+
+                        <div class="question-box">
+                            <strong>คำถามการวิจัย:</strong> "เราควรพัฒนาเศรษฐกิจไปถึงระดับใด จึงจะทำให้ปริมาณการปล่อยก๊าซคาร์บอนไดออกไซด์ (CO2) ลดลงอย่างเป็นรูปธรรม?"
+                        </div>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</div>
+                        <ul>
+                            <li>วัดระดับความซับซ้อนสีเขียว (GCI) ของกลุ่มเอเชียและความร่วมมือทางเศรษฐกิจ</li>
+                            <li>ศึกษาความสัมพันธ์ของ GDP และ CO2 ภายใต้สมมติฐาน <strong>เส้นโค้งคุซเน็ตส์ (EKC)</strong></li>
+                            <li>ศึกษาปัจจัยทางเศรษฐกิจมหภาคที่มีผลต่อการปล่อย CO2</li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "framework", title: "กรอบแนวคิด",
+                content: `
+                    <div class="content-section" id="sec-framework">
+                        <div class="section-heading"><i class="fa-solid fa-sitemap"></i> กรอบแนวคิดการวิจัย</div>
+                        
+                        <div class="framework-container-flex">
+                            <div class="framework-group">
+                                <div class="framework-group-title">ตัวแปรอิสระ (Independent Variables)</div>
+                                <div class="framework-box">การเจริญเติบโตทางเศรษฐกิจ (GDP)</div>
+                                <div class="framework-box">ความซับซ้อนสีเขียว (GCI)</div>
+                                <div class="framework-box">คุณภาพของสถาบัน (IQ)</div>
+                                <div class="framework-box">พลังงานหมุนเวียน (RE)</div>
+                            </div>
+                            <div class="framework-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+                            <div class="framework-group" style="border-color: var(--accent-gold); background: #fefce8;">
+                                <div class="framework-group-title" style="color: var(--accent-gold);">ตัวแปรตาม (Dependent Variable)</div>
+                                <div class="framework-box dependent">ปริมาณการปล่อยก๊าซ<br>คาร์บอนไดออกไซด์ (CO2)</div>
+                            </div>
+                        </div>
+                    </div>`
+            },
+            {
+                id: "method", title: "ข้อมูลและแบบจำลอง",
+                content: `
+                    <div class="content-section" id="sec-method">
+                        <div class="section-heading"><i class="fa-solid fa-database"></i> ข้อมูลที่ใช้ในการศึกษา</div>
+                        <p>ใช้ข้อมูลทุติยภูมิจาก World Bank (พ.ศ. 2513-2567) แบ่งเป็น:</p>
+                        <ul style="margin-top: 15px;">
+                            <li><strong>Time-Series Data:</strong> ข้อมูลระดับประเทศ 47 ประเทศในทวีปเอเชีย</li>
+                            <li><strong>Panel Data:</strong> ข้อมูลระดับกลุ่มความร่วมมือ 5 กลุ่ม (AEC, NAFTA, GCC, EU, OECD)</li>
+                        </ul>
+                        
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-chart-line"></i> แบบจำลองทางเศรษฐมิติ</div>
+                        <p>ประยุกต์ใช้แบบจำลองที่มีความยืดหยุ่นในการจับลักษณะข้อมูลที่ไม่เป็นเส้นตรง (Non-linear) ได้แก่:</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">Time Series Kink Regression</span></li>
+                            <li><span class="highlight">Panel Kink Regression</span></li>
+                        </ul>
+                        <p style="margin-top: 10px;">โมเดลเหล่านี้ช่วยให้สามารถคำนวณหา <strong>"จุดหักเห (Kink Point)"</strong> ได้อย่างแม่นยำกว่าโมเดลเส้นตรงทั่วไป</p>
+                    </div>`
+            },
+            {
+                id: "result", title: "ผลการศึกษา",
+                content: `
+                    <div class="content-section" id="sec-result">
+                        <div class="section-heading"><i class="fa-solid fa-square-poll-vertical"></i> สรุปผลการวิจัยที่สำคัญ</div>
+                        <ul>
+                            <li><strong>การมีอยู่ของเส้นโค้ง EKC (กลุ่มเอเชีย):</strong> พบ 31 ประเทศในเอเชียมีจุดวกกลับ โดยประเทศที่มีจุดหักเห (Kink Point) สูงสุด 3 อันดับแรกที่สอดคล้องกับแนวคิด EKC ได้แก่ <strong>ซาอุดีอาระเบีย, สิงคโปร์ และ ญี่ปุ่น</strong></li>
+                        </ul>
+
+                        <!-- ส่วนแสดงรูปภาพ Kink Regression 3 ประเทศ -->
+                        <div class="results-img-grid">
+                            <div class="results-img-card" onclick="document.getElementById('upload-saudi').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟซาอุดีอาระเบีย">
+                                <input type="file" id="upload-saudi" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-saudi', 'savedImgSaudi')">
+                                <img id="img-saudi" src="1.jpg" alt="Kink Regression: Saudi Arabia" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">ซาอุดีอาระเบีย<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Kink Point = 11.0476)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-singapore').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟสิงคโปร์">
+                                <input type="file" id="upload-singapore" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-singapore', 'savedImgSingapore')">
+                                <img id="img-singapore" src="2.jpg" alt="Kink Regression: Singapore" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">สิงคโปร์<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Kink Point = 10.9956)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-japan').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟญี่ปุ่น">
+                                <input type="file" id="upload-japan" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-japan', 'savedImgJapan')">
+                                <img id="img-japan" src="73cff088-98ba-4ec8-9ef1-3288718d4b0c.jpg" alt="Kink Regression: Japan" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">ญี่ปุ่น<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Kink Point = 10.6818)</span></div>
+                            </div>
+                        </div>
+
+                        <!-- ตารางสรุป Kink Point ทวีปเอเชีย -->
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>อันดับ</th>
+                                    <th>ประเทศ</th>
+                                    <th>Kink Point (ln GDP)</th>
+                                    <th>รายได้ ณ จุดวกกลับ (USD/คน/ปี) <br><small style="color:var(--text-muted); font-weight:400;">*คำนวณจาก exp(Kink Point)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>ซาอุดีอาระเบีย</td><td>11.0476</td><td><strong>62,692.68</strong></td></tr>
+                                <tr><td>2</td><td>สิงคโปร์</td><td>10.9956</td><td><strong>59,575.52</strong></td></tr>
+                                <tr><td>3</td><td>ญี่ปุ่น</td><td>10.6818</td><td><strong>43,521.05</strong></td></tr>
+                            </tbody>
+                        </table>
+
+                        <ul>
+                            <li><strong>การมีอยู่ของเส้นโค้ง EKC (กลุ่มความร่วมมือทางเศรษฐกิจ):</strong> กลุ่ม <strong>EU และ OECD</strong> สอดคล้องกับแนวคิด EKC อย่างชัดเจน โดยปริมาณ CO2 จะเริ่มลดลงเมื่อรายได้ถึงจุดวกกลับดังนี้</li>
+                        </ul>
+
+                        <!-- ส่วนแสดงรูปภาพ Kink Regression กลุ่มความร่วมมือ -->
+                        <div class="results-img-grid">
+                            <div class="results-img-card" onclick="document.getElementById('upload-eu').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟ EU">
+                                <input type="file" id="upload-eu" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-eu', 'savedImgEU')">
+                                <img id="img-eu" src="EU.jpg" alt="Kink Regression: EU" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">สหภาพยุโรป (EU)<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Turning Point = 10.509)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-oecd').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟ OECD">
+                                <input type="file" id="upload-oecd" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-oecd', 'savedImgOECD')">
+                                <img id="img-oecd" src="OECD.jpg" alt="Kink Regression: OECD" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">กลุ่มประเทศ OECD<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Turning Point = 10.501)</span></div>
+                            </div>
+                        </div>
+
+                        <!-- ตารางสรุป Kink Point กลุ่มความร่วมมือทางเศรษฐกิจ -->
+                        <table class="data-table" style="margin-bottom: 30px;">
+                            <thead>
+                                <tr>
+                                    <th>กลุ่มความร่วมมือทางเศรษฐกิจ</th>
+                                    <th>Kink Point (ln GDP)</th>
+                                    <th>รายได้ ณ จุดวกกลับ (USD/คน/ปี) <br><small style="color:var(--text-muted); font-weight:400;">*คำนวณจาก exp(Kink Point)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>สหภาพยุโรป (EU)</td><td>10.509</td><td><strong>36,643.81</strong></td></tr>
+                                <tr><td>องค์การเพื่อความร่วมมือทางเศรษฐกิจฯ (OECD)</td><td>10.501</td><td><strong>36,351.83</strong></td></tr>
+                            </tbody>
+                        </table>
+
+                        <ul>
+                            <li><strong>ความซับซ้อนสีเขียว (GCI):</strong> การเพิ่ม GCI ช่วยลด CO2 ใน NAFTA และ EU แต่ <strong>อาเซียน (AEC)</strong> กลับทำให้ CO2 เพิ่ม เนื่องจากโครงสร้างพึ่งพาฟอสซิล</li>
+                            <li><strong>พลังงานหมุนเวียน (RE):</strong> ส่งผลให้ปริมาณการปล่อย CO2 ลดลงในทุกกลุ่มความร่วมมือ</li>
+                            <li><strong>คุณภาพของสถาบัน (IQ):</strong> ความโปร่งใสและธรรมาภิบาล ช่วยลด CO2 ได้อย่างมีนัยสำคัญ โดยเฉพาะในกลุ่ม AEC</li>
+                            <li><strong>ข้อตกลงปารีส:</strong> กระตุ้นให้ประเทศร่ำรวย (GCC, EU, OECD) นำรายได้ไปลงทุนในเทคโนโลยีสะอาดแทนอุตสาหกรรมก่อมลพิษ</li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "policy", title: "ข้อเสนอแนะ",
+                content: `
+                    <div class="content-section" id="sec-policy">
+                        <div class="section-heading"><i class="fa-solid fa-lightbulb"></i> ข้อเสนอแนะเชิงนโยบาย</div>
+                        <ul>
+                            <li><strong>ส่งเสริมเทคโนโลยีสีเขียว:</strong> กลุ่มประเทศกำลังพัฒนาต้องมีมาตรการกระตุ้นการลงทุนด้าน R&D และเทคโนโลยีสะอาด</li>
+                            <li><strong>อุดหนุนพลังงานหมุนเวียน:</strong> ภาครัฐควรลดการพึ่งพาฟอสซิลและใช้มาตรการภาษีเพื่อจูงใจภาคอุตสาหกรรม</li>
+                            <li><strong>ถ่ายทอดเทคโนโลยี:</strong> องค์การระหว่างประเทศควรเร่งการถ่ายทอดความรู้จากกลุ่ม EU/OECD สู่ประเทศกำลังพัฒนา</li>
+                            <li><strong>ปฏิรูปสถาบัน:</strong> โดยเฉพาะใน AEC จำเป็นต้องเพิ่มความโปร่งใส เพื่อให้กลไกบังคับใช้กฎหมายสิ่งแวดล้อมมีประสิทธิภาพจริง</li>
+                        </ul>
+                    </div>`
+            }
+        ],
+        "2": [
+            {
+                id: "intro", title: "ที่มาและวัตถุประสงค์",
+                content: `
+                    <div class="content-section" id="sec-intro">
+                        <!-- พื้นที่โชว์รูปคู่ (ผู้นำเสนอ & ที่ปรึกษา) บทความที่ 2 -->
+                        <div class="profile-group" style="display: flex; flex-wrap: wrap; align-items: center; gap: 25px; margin-bottom: 30px; padding: 20px; background: rgba(4, 120, 87, 0.05); border-radius: 12px; border: 1px solid rgba(4, 120, 87, 0.15);">
+                            
+                            <!-- 1. รูปนิสิตผู้นำเสนอ -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-student2').click()" title="คลิกเพื่อเลือกรูปผู้นำเสนอ">
+                                    <input type="file" id="upload-student2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-student2', 'savedStudentImg2')">
+                                    <img id="img-student2" src="placeholder.jpg" alt="รูปผู้นำเสนอ" onerror="this.src='https://ui-avatars.com/api/?name=ศศิประภา&background=047857&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-green); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--accent-gold); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--primary-green); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-microphone-lines"></i> ผู้นำเสนอผลงาน</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">ศศิประภา ทองเรือง</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+
+                            <div class="desktop-divider" style="width: 1px; height: 50px; background: rgba(4, 120, 87, 0.2); margin: 0 5px;"></div>
+
+                            <!-- 2. รูปอาจารย์ที่ปรึกษา -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-advisor2').click()" title="คลิกเพื่อเลือกรูปอาจารย์ที่ปรึกษา">
+                                    <input type="file" id="upload-advisor2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-advisor2', 'savedAdvisorImg2')">
+                                    <img id="img-advisor2" src="placeholder.jpg" alt="รูปอาจารย์ที่ปรึกษา" onerror="this.src='https://ui-avatars.com/api/?name=อับดุลฮากิม&background=d97706&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--primary-green); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--accent-gold); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-chalkboard-user"></i> อาจารย์ที่ปรึกษา</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">อับดุลฮากิม มะดีเยาะ</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-heading"><i class="fa-solid fa-earth-asia"></i> ที่มาและความสำคัญ</div>
+                        <p>พลังงานถือเป็นปัจจัยพื้นฐานที่ขับเคลื่อนการเติบโตทางเศรษฐกิจและสังคมของประเทศไทย โดยเฉพาะในภาคขนส่ง อุตสาหกรรม และการอุปโภคบริโภคในครัวเรือนที่พึ่งพาน้ำมันเชื้อเพลิงเป็นหลัก</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">โครงสร้างการใช้พลังงานเปลี่ยนแปลง</span> ความต้องการใช้น้ำมันดีเซลและเบนซินมีแนวโน้มสูงขึ้นอย่างต่อเนื่อง ตามการขยายตัวของระบบโลจิสติกส์และการคมนาคม</li>
+                            <li><span class="highlight">การผลิตภายในประเทศมีข้อจำกัด</span> สัดส่วนการนำเข้าพลังงานกลายเป็นตัวแปรสำคัญที่ส่งผลต่อดุลการค้าและเสถียรภาพทางเศรษฐกิจของประเทศ</li>
+                            <li>จำเป็นต้องทำความเข้าใจพฤติกรรมการผลิตและการใช้พลังงานในอดีต เพื่อพยากรณ์อุปสงค์และอุปทานใน 5 ปีข้างหน้า</li>
+                        </ul>
+
+                        <div class="question-box">
+                            <strong>คำถามการวิจัย:</strong> "ในช่วง 5 ปีข้างหน้า ทิศทางของอุปสงค์และอุปทานพลังงาน (การผลิต, นำเข้า, ดีเซล, เบนซิน) ของประเทศไทยจะเป็นอย่างไร เพื่อเตรียมแผนรับมือด้านความมั่นคงทางพลังงาน?"
+                        </div>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</div>
+                        <ul>
+                            <li>ศึกษาแนวโน้มสถานการณ์พลังงานของประเทศไทยย้อนหลัง 40 ปี (พ.ศ. 2529 - 2568)</li>
+                            <li>สร้างและทดสอบความเหมาะสมของ <strong>แบบจำลอง ARIMA</strong> เพื่อเป็นตัวแทนพฤติกรรมการผลิต นำเข้า และใช้น้ำมัน</li>
+                            <li>พยากรณ์สถานการณ์พลังงานของประเทศไทยล่วงหน้า 5 ปี (พ.ศ. 2569 – 2573) เพื่อเป็นข้อมูลเชิงยุทธศาสตร์</li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "framework", title: "กรอบแนวคิด",
+                content: `
+                    <div class="content-section" id="sec-framework">
+                        <div class="section-heading"><i class="fa-solid fa-sitemap"></i> กรอบแนวคิดการวิจัย</div>
+                        
+                        <div class="framework-container-flex">
+                            <div class="framework-group">
+                                <div class="framework-group-title">ตัวแปรอิสระ (ข้อมูลอดีต)</div>
+                                <div class="framework-box">สถิติปริมาณการผลิต (พ.ศ.2529-2568)</div>
+                                <div class="framework-box">สถิติปริมาณการนำเข้า (พ.ศ.2529-2568)</div>
+                                <div class="framework-box">สถิติการใช้ดีเซล (พ.ศ.2529-2568)</div>
+                                <div class="framework-box">สถิติการใช้เบนซิน (พ.ศ.2529-2568)</div>
+                            </div>
+                            <div class="framework-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+                            <div class="framework-group" style="border-color: var(--accent-gold); background: #fefce8;">
+                                <div class="framework-group-title" style="color: var(--accent-gold);">ตัวแปรตาม (ผลพยากรณ์)</div>
+                                <div class="framework-box dependent">แนวโน้มการผลิต (พ.ศ.2569-2573)</div>
+                                <div class="framework-box dependent">แนวโน้มการนำเข้า (พ.ศ.2569-2573)</div>
+                                <div class="framework-box dependent">แนวโน้มความต้องการดีเซล (พ.ศ.2569-2573)</div>
+                                <div class="framework-box dependent">แนวโน้มความต้องการเบนซิน (พ.ศ.2569-2573)</div>
+                            </div>
+                        </div>
+                    </div>`
+            },
+            {
+                id: "method", title: "ข้อมูลและแบบจำลอง",
+                content: `
+                    <div class="content-section" id="sec-method">
+                        <div class="section-heading"><i class="fa-solid fa-database"></i> ข้อมูลที่ใช้ในการศึกษา</div>
+                        <p>ใช้ข้อมูลทุติยภูมิอนุกรมเวลารายปี (Time Series Data) ย้อนหลัง 40 ปี (พ.ศ. 2529 - 2568) จากสำนักงานนโยบายและแผนพลังงาน (กระทรวงพลังงาน) ครอบคลุม 4 ตัวแปรหลัก:</p>
+                        <ul style="margin-top: 15px;">
+                            <li>ปริมาณการผลิตภายในประเทศ</li>
+                            <li>ปริมาณการนำเข้า</li>
+                            <li>ความต้องการใช้น้ำมันเชื้อเพลิงดีเซล</li>
+                            <li>ความต้องการใช้น้ำมันเชื้อเพลิงเบนซิน</li>
+                        </ul>
+                        
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-chart-line"></i> แบบจำลองทางเศรษฐมิติ</div>
+                        <p>ประยุกต์ใช้แบบจำลอง <strong>ARIMA (Autoregressive Integrated Moving Average)</strong> ตามระเบียบวิธีของ Box-Jenkins ซึ่งประกอบด้วยขั้นตอนดังนี้:</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">การระบุตัวแบบ (Identification)</span>: ทดสอบความนิ่งของข้อมูล และพิจารณาค่า ACF/PACF เพื่อกำหนดค่า p, d, q</li>
+                            <li><span class="highlight">การประมาณค่าพารามิเตอร์ (Estimation)</span>: คัดเลือกแบบจำลองที่มีค่า AIC และ BIC ต่ำที่สุด</li>
+                            <li><span class="highlight">การตรวจสอบความถูกต้อง (Diagnostic Checking)</span>: ทดสอบ Ljung-Box Q statistics (P-value > 0.05) เพื่อยืนยันว่าข้อมูลเป็น White Noise</li>
+                        </ul>
+                        
+                        <div style="background: var(--bg-main); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-top: 15px; font-family: monospace; font-size: 0.9rem;">
+                            <strong>สมการ ARIMA(p,d,q):</strong><br>
+                            Δ<sup>d</sup>Y<sub>t</sub> = c + φ<sub>1</sub>Δ<sup>d</sup>Y<sub>t-1</sub> + ... + φ<sub>p</sub>Δ<sup>d</sup>Y<sub>t-p</sub> + ε<sub>t</sub> - θ<sub>1</sub>ε<sub>t-1</sub> - ... - θ<sub>q</sub>ε<sub>t-q</sub>
+                        </div>
+
+                        <p style="margin-top: 15px;">การวัดความแม่นยำใช้เกณฑ์ <strong>MAPE (Mean Absolute Percentage Error)</strong> โดยหากค่า MAPE ต่ำกว่า 10% ถือว่าแบบจำลองมีความแม่นยำสูงมาก (Highly Accurate Forecasting)</p>
+                    </div>`
+            },
+            {
+                id: "result", title: "ผลการศึกษา",
+                content: `
+                    <div class="content-section" id="sec-result">
+                        <div class="section-heading"><i class="fa-solid fa-square-poll-vertical"></i> ผลการคัดเลือกตัวแบบ ARIMA</div>
+                        <p>จากการทดสอบ พบว่าแบบจำลองที่เหมาะสมที่สุดและมีความแม่นยำสูง (MAPE ระหว่าง 3.674% - 9.876%) ได้แก่:</p>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ตัวแปร</th>
+                                    <th>แบบจำลอง (ARIMA)</th>
+                                    <th>Ljung-Box Q</th>
+                                    <th>MAPE (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>การผลิตน้ำมันเชื้อเพลิงในประเทศ</td><td><strong>(3,2,1)</strong></td><td>0.989</td><td><strong>9.876</strong></td></tr>
+                                <tr><td>การนำเข้าน้ำมันเชื้อเพลิง</td><td><strong>(2,1,2)</strong></td><td>0.871</td><td><strong>6.045</strong></td></tr>
+                                <tr><td>การใช้น้ำมันดีเซล</td><td><strong>(3,2,1)</strong></td><td>0.592</td><td><strong>7.616</strong></td></tr>
+                                <tr><td>การใช้น้ำมันเบนซิน</td><td><strong>(3,1,2)</strong></td><td>0.900</td><td><strong>3.949</strong></td></tr>
+                            </tbody>
+                        </table>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-chart-pie"></i> ผลการพยากรณ์ 5 ปีล่วงหน้า (พ.ศ. 2569 – 2573)</div>
+                        <ul>
+                            <li><strong>ด้านอุปสงค์ (Demand):</strong> ความต้องการใช้น้ำมันเชื้อเพลิงมีแนวโน้มขยายตัวเพิ่มขึ้นอย่างต่อเนื่อง โดยเฉพาะ <strong>ดีเซล</strong> ที่พุ่งสูงถึง 79.6 ล้านลิตร/วัน ในปี 2573 (Upward Trend) ส่วนเบนซินเพิ่มขึ้นเล็กน้อยที่ 34.6 ล้านลิตร/วัน</li>
+                            <li><strong>ด้านอุปทาน (Supply):</strong> ปริมาณการผลิตภายในประเทศมีทิศทาง <strong>ลดลงอย่างมีนัยสำคัญ</strong> (Downward Trend) เหลือเพียง 64,327 บาร์เรล/วัน ในปี 2573 ทำให้ต้อง <strong>พึ่งพาการนำเข้าสูง</strong> ทรงตัวระดับ 9.7 แสนบาร์เรล/วัน</li>
+                        </ul>
+
+                        <!-- กรอบสำหรับใส่รูปภาพพยากรณ์ 4 รูป -->
+                        <div class="results-img-grid" style="margin-top: 20px;">
+                            <div class="results-img-card" onclick="document.getElementById('upload-forecast-prod2').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟการผลิต">
+                                <input type="file" id="upload-forecast-prod2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-forecast-prod2', 'savedImgForecastProd2')">
+                                <img id="img-forecast-prod2" src="placeholder.jpg" alt="การพยากรณ์การผลิต" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">การพยากรณ์การผลิตภายในประเทศ<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(พ.ศ. 2569 - 2573)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-forecast-import2').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟการนำเข้า">
+                                <input type="file" id="upload-forecast-import2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-forecast-import2', 'savedImgForecastImport2')">
+                                <img id="img-forecast-import2" src="placeholder.jpg" alt="การพยากรณ์การนำเข้า" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">การพยากรณ์การนำเข้า<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(พ.ศ. 2569 - 2573)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-forecast-diesel2').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟดีเซล">
+                                <input type="file" id="upload-forecast-diesel2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-forecast-diesel2', 'savedImgForecastDiesel2')">
+                                <img id="img-forecast-diesel2" src="placeholder.jpg" alt="การพยากรณ์ดีเซล" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">การพยากรณ์ความต้องการใช้น้ำมันดีเซล<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(พ.ศ. 2569 - 2573)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-forecast-gasoline2').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟเบนซิน">
+                                <input type="file" id="upload-forecast-gasoline2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-forecast-gasoline2', 'savedImgForecastGasoline2')">
+                                <img id="img-forecast-gasoline2" src="placeholder.jpg" alt="การพยากรณ์เบนซิน" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟ'">
+                                <div class="results-img-caption">การพยากรณ์ความต้องการใช้น้ำมันเบนซิน<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(พ.ศ. 2569 - 2573)</span></div>
+                            </div>
+                        </div>
+
+                        <!-- ตารางพยากรณ์ 5 ปี -->
+                        <table class="data-table" style="margin-top: 20px;">
+                            <thead>
+                                <tr>
+                                    <th>ปี พ.ศ.</th>
+                                    <th>การผลิต (บาร์เรล/วัน)</th>
+                                    <th>การนำเข้า (บาร์เรล/วัน)</th>
+                                    <th>ดีเซล (ลิตร/วัน)</th>
+                                    <th>เบนซิน (ลิตร/วัน)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2569</td><td>76,866</td><td>978,574</td><td>67,449,408</td><td>33,193,845</td></tr>
+                                <tr><td>2570</td><td>77,036</td><td>983,502</td><td>71,631,537</td><td>33,677,918</td></tr>
+                                <tr><td>2571</td><td>75,169</td><td>979,353</td><td>74,996,384</td><td>33,736,224</td></tr>
+                                <tr><td>2572</td><td>69,060</td><td>980,303</td><td>77,244,826</td><td>34,056,156</td></tr>
+                                <tr><td><strong>2573</strong></td><td><strong style="color: #ef4444;">64,327</strong></td><td><strong style="color: var(--primary-green);">976,395</strong></td><td><strong style="color: var(--primary-green);">79,644,047</strong></td><td><strong>34,636,948</strong></td></tr>
+                            </tbody>
+                        </table>
+                    </div>`
+            },
+            {
+                id: "policy", title: "ข้อเสนอแนะ",
+                content: `
+                    <div class="content-section" id="sec-policy">
+                        <div class="section-heading"><i class="fa-solid fa-lightbulb"></i> ข้อเสนอแนะเชิงนโยบาย</div>
+                        <ul>
+                            <li><strong>ด้านการบริหารจัดการอุปทาน:</strong> ภาครัฐควรเตรียมแผนรองรับการนำเข้าพลังงานในระดับสูง (ประมาณ 9.7 แสนบาร์เรล/วัน) เพื่อชดเชยกำลังการผลิตในประเทศที่ลดลง ป้องกันการขาดแคลน</li>
+                            <li><strong>ด้านการจัดการอุปสงค์:</strong> เร่งส่งเสริมมาตรการประหยัดพลังงานในภาคขนส่ง และผลักดันการใช้ระบบโลจิสติกส์ทางราง เพื่อลดการพึ่งพาน้ำมันดีเซลที่มีแนวโน้มการใช้สูงถึง 79.6 ล้านลิตร/วัน</li>
+                            <li><strong>นโยบายพลังงานทดแทน:</strong> เร่งรัดการเปลี่ยนผ่านสู่พลังงานสะอาด (Energy Transition) โดยเฉพาะในกลุ่มผู้ใช้เบนซินที่มีความพร้อมในการปรับตัวมากกว่า เพื่อลดภาระการนำเข้าและสร้างความมั่นคงที่ยั่งยืน</li>
+                        </ul>
+                        
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-magnifying-glass"></i> ข้อเสนอแนะเพื่องานวิจัยครั้งต่อไป</div>
+                        <ul>
+                            <li>ควรต่อยอดวิจัยโดยใช้ข้อมูลมิติอื่น เช่น มูลค่าการใช้พลังงาน มูลค่าการนำเข้า และราคาน้ำมัน เพื่อสะท้อนภาพรวมทั้งด้านราคาและปริมาณ</li>
+                            <li>ทดลองใช้สถิติการวิเคราะห์รูปแบบอื่น เช่น สมการถดถอย (Regression) ควบคู่ไปกับ ARIMA เพื่อประเมินสถานการณ์ได้แม่นยำและครอบคลุมยิ่งขึ้น</li>
+                        </ul>
+                    </div>`
+            }
+        ],
+        "3": [
+            {
+                id: "intro", title: "ที่มาและวัตถุประสงค์",
+                content: `
+                    <div class="content-section" id="sec-intro">
+                        <!-- พื้นที่โชว์รูปคู่ (ผู้นำเสนอ & ที่ปรึกษา) บทความที่ 3 -->
+                        <div class="profile-group" style="display: flex; flex-wrap: wrap; align-items: center; gap: 25px; margin-bottom: 30px; padding: 20px; background: rgba(4, 120, 87, 0.05); border-radius: 12px; border: 1px solid rgba(4, 120, 87, 0.15);">
+                            
+                            <!-- 1. รูปนิสิตผู้นำเสนอ -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-student3').click()" title="คลิกเพื่อเลือกรูปผู้นำเสนอ">
+                                    <input type="file" id="upload-student3" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-student3', 'savedStudentImg3')">
+                                    <img id="img-student3" src="placeholder.jpg" alt="รูปผู้นำเสนอ" onerror="this.src='https://ui-avatars.com/api/?name=จักรภัทร&background=047857&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-green); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--accent-gold); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--primary-green); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-microphone-lines"></i> ผู้นำเสนอผลงาน</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">จักรภัทร บุญญาภินิหาร</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+
+                            <div class="desktop-divider" style="width: 1px; height: 50px; background: rgba(4, 120, 87, 0.2); margin: 0 5px;"></div>
+
+                            <!-- 2. รูปอาจารย์ที่ปรึกษา -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-advisor3').click()" title="คลิกเพื่อเลือกรูปอาจารย์ที่ปรึกษา">
+                                    <input type="file" id="upload-advisor3" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-advisor3', 'savedAdvisorImg3')">
+                                    <img id="img-advisor3" src="placeholder.jpg" alt="รูปอาจารย์ที่ปรึกษา" onerror="this.src='https://ui-avatars.com/api/?name=ธนวิทย์&background=d97706&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--primary-green); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--accent-gold); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-chalkboard-user"></i> อาจารย์ที่ปรึกษา</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">ดร.ธนวิทย์ บุญสิทธิ์</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-heading"><i class="fa-solid fa-earth-asia"></i> ที่มาและความสำคัญ</div>
+                        <p>การพัฒนาเศรษฐกิจในอดีตมักให้ความสำคัญกับการเติบโตของ <strong>GDP</strong> เป็นหลัก อย่างไรก็ตาม การเพิ่มขึ้นของ GDP ไม่ได้หมายความว่าประชาชนจะมีคุณภาพชีวิตที่ดีหรือมีความสุขเสมอไป หลายประเทศยังประสบปัญหาความเหลื่อมล้ำ ความเครียด สุขภาพจิต และปัญหาสิ่งแวดล้อม</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">เศรษฐศาสตร์ความสุข (Happiness Economics)</span> จึงเกิดขึ้นเพื่อศึกษาปัจจัยทางเศรษฐกิจ สังคม และจิตวิทยา ที่มีผลต่อความเป็นอยู่ที่ดี (Well-being) มากกว่าการวัดความมั่งคั่งทางวัตถุเพียงอย่างเดียว</li>
+                            <li><span class="highlight">Easterlin Paradox</span> งานศึกษาที่พบว่า แม้รายได้เฉลี่ยของประเทศจะเพิ่มขึ้นในระยะยาว แต่ระดับความสุขของประชาชนกลับไม่ได้เพิ่มขึ้นตามอย่างสอดคล้องกัน</li>
+                            <li>ปัจจุบันมีตัวชี้วัดเช่น World Happiness Report ที่ชี้ว่า <strong>การสนับสนุนทางสังคม สุขภาพ เสรีภาพ และความไว้วางใจ</strong> มีบทบาทสำคัญต่อความสุขมากกว่ารายได้เพียงอย่างเดียว</li>
+                        </ul>
+
+                        <div class="question-box">
+                            <strong>แนวคิดหลัก:</strong> การเติบโตทางเศรษฐกิจเพียงอย่างเดียวสามารถสร้างความสุขให้กับสังคมได้อย่างยั่งยืนจริงหรือ? หรือจำเป็นต้องคำนึงถึงปัจจัยมิติอื่นควบคู่ไปด้วย
+                        </div>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</div>
+                        <ul>
+                            <li>เพื่อศึกษาความหมาย แนวคิด และพัฒนาการของเศรษฐศาสตร์ความสุข</li>
+                            <li>เพื่อวิเคราะห์ปัจจัยทางเศรษฐกิจและสังคมที่ส่งผลต่อระดับความสุขของประชาชน</li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "framework", title: "กรอบแนวคิด",
+                content: `
+                    <div class="content-section" id="sec-framework">
+                        <div class="section-heading"><i class="fa-solid fa-sitemap"></i> กรอบแนวคิดการวิจัย</div>
+                        
+                        <div class="framework-container-flex">
+                            <div class="framework-group">
+                                <div class="framework-group-title">ตัวแปรอิสระ (Independent Variables)</div>
+                                <div class="framework-box">GDP (ความมั่งคั่งทางเศรษฐกิจ)</div>
+                                <div class="framework-box">SOS (การสนับสนุนทางสังคม)</div>
+                                <div class="framework-box">FRE (เสรีภาพในการตัดสินใจ)</div>
+                                <div class="framework-box">HLE, GEN, COR, MPI</div>
+                            </div>
+                            <div class="framework-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+                            <div class="framework-group" style="border-color: var(--accent-gold); background: #fefce8;">
+                                <div class="framework-group-title" style="color: var(--accent-gold);">ตัวแปรตาม (Dependent Variable)</div>
+                                <div class="framework-box dependent">คะแนนความสุข<br>(Happiness Score - HAP)</div>
+                            </div>
+                        </div>
+                    </div>`
+            },
+            {
+                id: "method", title: "ข้อมูลและแบบจำลอง",
+                content: `
+                    <div class="content-section" id="sec-method">
+                        <div class="section-heading"><i class="fa-solid fa-database"></i> ข้อมูลและตัวแปรที่ใช้ในการศึกษา</div>
+                        <p>ใช้ข้อมูลภาคตัดขวาง (Cross-sectional data) จาก 146 ประเทศทั่วโลก รวบรวมจากฐานข้อมูลของ UNDP และ World Happiness Report (ปี 2022) โดยมีตัวแปรดังนี้:</p>
+                        
+                        <table class="data-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>ตัวแปร</th>
+                                    <th>ความหมาย</th>
+                                    <th>สมมติฐานความสัมพันธ์</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><strong>HAP</strong> (ตัวแปรตาม)</td><td>คะแนนความสุข (Happiness)</td><td>-</td></tr>
+                                <tr><td><strong>GDP</strong></td><td>ความมั่งคั่งทางเศรษฐกิจของประเทศ</td><td>เชิงบวก (+)</td></tr>
+                                <tr><td><strong>SOS</strong></td><td>การสนับสนุนทางสังคม</td><td>เชิงบวก (+)</td></tr>
+                                <tr><td><strong>HLE</strong></td><td>อายุคาดเฉลี่ยของการมีสุขภาพดี</td><td>เชิงบวก (+) <small>*ในรายงานต้นฉบับตั้งสมมติฐาน <0 แต่ตามหลักควรเป็นเชิงบวก</small></td></tr>
+                                <tr><td><strong>FRE</strong></td><td>เสรีภาพในการตัดสินใจใช้ชีวิต</td><td>เชิงบวก (+) <small>*ในรายงานต้นฉบับตั้งสมมติฐาน <0 แต่ตามหลักควรเป็นเชิงบวก</small></td></tr>
+                                <tr><td><strong>GEN</strong></td><td>ความเอื้อเฟื้อเผื่อแผ่</td><td>เชิงบวก (+) <small>*ในรายงานต้นฉบับตั้งสมมติฐาน <0 แต่ตามหลักควรเป็นเชิงบวก</small></td></tr>
+                                <tr><td><strong>COR</strong></td><td>การรับรู้การทุจริตคอรัปชัน</td><td>เชิงลบ (-)</td></tr>
+                                <tr><td><strong>MPI</strong></td><td>ดัชนีความยากจนหลายมิติ</td><td>เชิงลบ (-)</td></tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-chart-line"></i> แบบจำลองทางเศรษฐมิติ</div>
+                        <p>การวิเคราะห์ใช้วิธีถดถอยเชิงซ้อน (Multiple Regression Analysis) และการประมาณค่าความคลาดเคลื่อนที่มีความทนทาน (Robust Standard Errors) ประกอบด้วย 3 แบบจำลอง ได้แก่:</p>
+                        
+                        <div style="background: var(--bg-main); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-top: 15px; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+                            <strong>1. Linear model:</strong><br>
+                            Happiness = β<sub>0</sub> + β<sub>1</sub>GDP + β<sub>2</sub>SOS + β<sub>3</sub>HLE + β<sub>4</sub>FRE + β<sub>5</sub>GEN + β<sub>6</sub>COR + β<sub>7</sub>MPI + μ<br><br>
+                            <strong>2. Log-log model:</strong><br>
+                            Happiness = β<sub>0</sub> + β<sub>1</sub>log(GDP) + β<sub>2</sub>log(SOS) + ... + β<sub>7</sub>log(MPI) + μ<br><br>
+                            <strong>3. Log-lin model:</strong><br>
+                            log(Happiness) = β<sub>0</sub> + β<sub>1</sub>GDP + β<sub>2</sub>SOS + ... + β<sub>7</sub>MPI + μ
+                        </div>
+                    </div>`
+            },
+            {
+                id: "result", title: "ผลการศึกษา",
+                content: `
+                    <div class="content-section" id="sec-result">
+                        <div class="section-heading"><i class="fa-solid fa-chart-bar"></i> สถิติเชิงพรรณนา</div>
+                        <p>จากกลุ่มตัวอย่าง 146 ประเทศ พบว่ามีระดับความสุขเฉลี่ย (HAP) อยู่ที่ <strong>4.95 คะแนน</strong> สะท้อนให้เห็นว่ากลุ่มประเทศตัวอย่างมีระดับความสุขปานกลาง โดยกลุ่ม 10 ประเทศที่มีความสุขสูงสุดมีคะแนนกระจายตัวอย่างสมดุลในช่วง 6.02 - 6.46 คะแนน</p>
+                        <p>เมื่อเปรียบเทียบกับ GDP พบว่า <strong>ประเทศที่มี GDP สูงสุด ไม่ได้ตรงกับประเทศที่มีความสุขสูงสุดทั้งหมด</strong> ซึ่งยืนยันแนวคิดที่ว่ารายได้ไม่ใช่ปัจจัยเดียวที่กำหนดความเป็นอยู่ที่ดี</p>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-ranking-star"></i> 10 อันดับประเทศที่มีคะแนนความสุขสูงสุด</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>อันดับ</th>
+                                    <th>ประเทศ (Country)</th>
+                                    <th>คะแนนความสุข (Happiness Score)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>โคโซโว (Kosovo)</td><td><strong>6.46</strong></td></tr>
+                                <tr><td>2</td><td>ปานามา (Panama)</td><td><strong>6.31</strong></td></tr>
+                                <tr><td>3</td><td>บราซิล (Brazil)</td><td><strong>6.29</strong></td></tr>
+                                <tr><td>4</td><td>กัวเตมาลา (Guatemala)</td><td><strong>6.26</strong></td></tr>
+                                <tr><td>5</td><td>นิการากัว (Nicaragua)</td><td><strong>6.16</strong></td></tr>
+                                <tr><td>6</td><td>เม็กซิโก (Mexico)</td><td><strong>6.13</strong></td></tr>
+                                <tr><td>7</td><td>เอลซัลวาดอร์ (El Salvador)</td><td><strong>6.12</strong></td></tr>
+                                <tr><td>8</td><td>มอริเชียส (Mauritius)</td><td><strong>6.07</strong></td></tr>
+                                <tr><td>9</td><td>อุซเบกิสถาน (Uzbekistan)</td><td><strong>6.06</strong></td></tr>
+                                <tr><td>10</td><td>ฮอนดูรัส (Honduras)</td><td><strong>6.02</strong></td></tr>
+                            </tbody>
+                        </table>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-square-poll-vertical"></i> ผลการวิเคราะห์การถดถอยเชิงซ้อน</div>
+                        <p>จากทั้ง 3 แบบจำลอง (Linear, Log-log, Log-lin) พบว่าแบบจำลองมีความเหมาะสมทางสถิติ (Prob > F = 0.0000) โดยมีตัวแปรที่ส่งผลต่อคะแนนความสุขดังนี้:</p>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ปัจจัยที่มีอิทธิพลต่อความสุข</th>
+                                    <th>ทิศทางความสัมพันธ์</th>
+                                    <th>คำอธิบาย</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>ผลิตภัณฑ์มวลรวมภายในประเทศ (GDP)</strong></td>
+                                    <td><strong style="color:var(--primary-green);">เชิงบวก (+)</strong></td>
+                                    <td>มีนัยสำคัญ เมื่อเติบโตขึ้นประชาชนมีรายได้เพิ่ม เข้าถึงบริการที่จำเป็นได้ดีขึ้น</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>การสนับสนุนทางสังคม (SOS)</strong></td>
+                                    <td><strong style="color:var(--primary-green);">เชิงบวก (+)</strong></td>
+                                    <td>มีนัยสำคัญสูง การมีเครือข่ายครอบครัว/สังคมช่วยลดความเครียด เพิ่มความมั่นคงทางจิตใจ</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>เสรีภาพในการตัดสินใจ (FRE)</strong></td>
+                                    <td><strong style="color:var(--primary-green);">เชิงบวก (+)</strong></td>
+                                    <td>มีนัยสำคัญสูง การมีเสรีภาพเลือกวิถีชีวิต ส่งผลให้ระดับความพึงพอใจในชีวิตเพิ่มขึ้น</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>สุขภาพขัยเฉลี่ย (HLE)</strong></td>
+                                    <td>เชิงบวก (+)</td>
+                                    <td>ไม่มีนัยสำคัญชัดเจนในบางโมเดล อาจเป็นเพราะเป็นปัจจัยพื้นฐานที่คล้ายคลึงกันในหลายประเทศ</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>การรับรู้การทุจริต (COR) & ความยากจน (MPI)</strong></td>
+                                    <td><strong style="color:#ef4444;">เชิงลบ (-)</strong></td>
+                                    <td>ทิศทางเชิงลบ (ความยากจน/คอร์รัปชันสูง = ความสุขลด) แต่ทางสถิติผลอาจยังไม่เด่นชัดในโมเดลนี้</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>`
+            },
+            {
+                id: "policy", title: "ข้อเสนอแนะ",
+                content: `
+                    <div class="content-section" id="sec-policy">
+                        <div class="section-heading"><i class="fa-solid fa-comments"></i> สรุปและอภิปรายผล</div>
+                        <p>การพัฒนาเศรษฐกิจเพียงด้านรายได้ (GDP) ไม่เพียงพอในการยกระดับความเป็นอยู่ที่ดี ประชาชนต้องการมิติทางสังคม เสรีภาพ และคุณภาพชีวิตควบคู่กันไป ความสัมพันธ์ที่พบเป็นลักษณะความสัมพันธ์เชิงสหสัมพันธ์ (Association) ไม่ใช่ความเป็นเหตุเป็นผลโดยตรง เนื่องจากเป็นข้อมูลภาคตัดขวาง</p>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-lightbulb"></i> แนวทางเชิงนโยบายเพื่อยกระดับความสุข</div>
+                        <ul>
+                            <li><strong>ส่งเสริมการเติบโตทางเศรษฐกิจอย่างทั่วถึง:</strong> การพัฒนา GDP ควรมาพร้อมกับการกระจายรายได้ที่เป็นธรรม ลดความเหลื่อมล้ำ เพื่อให้เป็นความสุขที่แท้จริง</li>
+                            <li><strong>เสริมสร้างทุนทางสังคม (Social Support):</strong> ภาครัฐควรมีนโยบายสวัสดิการที่สนับสนุนความเข้มแข็งของครอบครัว ชุมชน และเพิ่มความไว้วางใจในสังคม</li>
+                            <li><strong>ส่งเสริมเสรีภาพและธรรมาภิบาล:</strong> สร้างสภาพแวดล้อมที่มีเสรีภาพในการตัดสินใจ และลดปัญหาคอร์รัปชัน เพื่อสร้างความเชื่อมั่นต่อสถาบันของรัฐ</li>
+                            <li><strong>ลดความยากจนหลายมิติ (MPI):</strong> ควรมุ่งเน้นทั้งด้านการศึกษา สุขภาพ และมาตรฐานการครองชีพ</li>
+                            <li><strong>บูรณาการนโยบายแบบ "Beyond GDP":</strong> นโยบายการพัฒนาประเทศควรให้ความสำคัญกับ "ความเป็นอยู่ที่ดี (Well-being)" ในทุกมิติ มากกว่ามุ่งเน้นเพียงตัวเลขการเติบโตทางเศรษฐกิจ</li>
+                        </ul>
+                    </div>`
+            }
+        ],
+        "4": [
+            {
+                id: "intro", title: "ที่มาและวัตถุประสงค์",
+                content: `
+                    <div class="content-section" id="sec-intro">
+                        <!-- พื้นที่โชว์รูปคู่ (ผู้นำเสนอ & ที่ปรึกษา) บทความที่ 4 -->
+                        <div class="profile-group" style="display: flex; flex-wrap: wrap; align-items: center; gap: 25px; margin-bottom: 30px; padding: 20px; background: rgba(4, 120, 87, 0.05); border-radius: 12px; border: 1px solid rgba(4, 120, 87, 0.15);">
+                            
+                            <!-- 1. รูปนิสิตผู้นำเสนอ -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-student4').click()" title="คลิกเพื่อเลือกรูปผู้นำเสนอ">
+                                    <input type="file" id="upload-student4" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-student4', 'savedStudentImg4')">
+                                    <img id="img-student4" src="placeholder.jpg" alt="รูปผู้นำเสนอ" onerror="this.src='https://ui-avatars.com/api/?name=รัตนลักษณ์&background=047857&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-green); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--accent-gold); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--primary-green); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-microphone-lines"></i> ผู้นำเสนอผลงาน</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">รัตนลักษณ์ ไล้คง</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+
+                            <div class="desktop-divider" style="width: 1px; height: 50px; background: rgba(4, 120, 87, 0.2); margin: 0 5px;"></div>
+
+                            <!-- 2. รูปอาจารย์ที่ปรึกษา -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-advisor4').click()" title="คลิกเพื่อเลือกรูปอาจารย์ที่ปรึกษา">
+                                    <input type="file" id="upload-advisor4" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-advisor4', 'savedAdvisorImg4')">
+                                    <img id="img-advisor4" src="placeholder.jpg" alt="รูปอาจารย์ที่ปรึกษา" onerror="this.src='https://ui-avatars.com/api/?name=บุษกร&background=d97706&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--primary-green); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--accent-gold); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-chalkboard-user"></i> อาจารย์ที่ปรึกษา</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">ผศ.บุษกร ถาวรประสิทธิ์</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-heading"><i class="fa-solid fa-earth-asia"></i> ที่มาและความสำคัญ</div>
+                        <p>หนี้สาธารณะเป็นประเด็นสำคัญทางเศรษฐศาสตร์ที่ได้รับความสนใจอย่างมากในกลุ่มประเทศอาเซียน โดยเฉพาะเมื่อรัฐบาลมีความจำเป็นต้องกู้ยืมเงินเพื่อพัฒนาโครงสร้างพื้นฐาน ยกระดับคุณภาพชีวิต และกระตุ้นเศรษฐกิจในช่วงวิกฤต เช่น การแพร่ระบาดของ COVID-19</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">ความแตกต่างเชิงโครงสร้าง</span> สิงคโปร์มีระดับหนี้สาธารณะสูงแต่มีสินทรัพย์และเงินออมรองรับ ขณะที่มาเลเซียและไทยเป็นกลุ่มประเทศรายได้ปานกลางที่มีตลาดการเงินในประเทศรองรับการกู้ยืมได้ดี</li>
+                            <li><span class="highlight">ผลกระทบของหนี้สูง</span> หากไม่มีการบริหารจัดการที่ดี การจัดสรรงบประมาณไปชำระหนี้อาจเบียดบัง (Crowding Out) การลงทุนเพื่อพัฒนาประเทศด้านอื่นๆ</li>
+                        </ul>
+
+                        <div class="question-box">
+                            <strong>คำถามการวิจัย:</strong> "ปัจจัยด้านโครงสร้างเศรษฐกิจ นโยบายการคลัง และการบริหารภาครัฐใดบ้าง ที่มีผลกระทบต่อระดับหนี้สาธารณะของประเทศมาเลเซีย สิงคโปร์ และไทย อย่างมีนัยสำคัญ?"
+                        </div>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</div>
+                        <ul>
+                            <li>เพื่อศึกษาสถานการณ์ระดับหนี้สาธารณะของประเทศในอาเซียน 3 ประเทศ ได้แก่ มาเลเซีย สิงคโปร์ และไทย</li>
+                            <li>เพื่อศึกษาปัจจัยเศรษฐกิจมหภาคที่มีผลกระทบต่อระดับหนี้สาธารณะของทั้ง 3 ประเทศ เพื่อเป็นข้อมูลในการกำหนดนโยบายและเสริมสร้างเสถียรภาพทางการคลัง</li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "framework", title: "กรอบแนวคิด",
+                content: `
+                    <div class="content-section" id="sec-framework">
+                        <div class="section-heading"><i class="fa-solid fa-sitemap"></i> กรอบแนวคิดการวิจัย</div>
+                        
+                        <div class="framework-container-flex">
+                            <div class="framework-group">
+                                <div class="framework-group-title">ตัวแปรอิสระ (Independent Variables)</div>
+                                <div class="framework-box">การเติบโตทางเศรษฐกิจ (GDPG)</div>
+                                <div class="framework-box">รายได้ภาษีรัฐบาล (TAX)</div>
+                                <div class="framework-box">การลงทุนโดยตรงจากตปท. (FDI)</div>
+                                <div class="framework-box">FISCAL, EX, INF, INT, BPCS</div>
+                            </div>
+                            <div class="framework-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+                            <div class="framework-group" style="border-color: var(--accent-gold); background: #fefce8;">
+                                <div class="framework-group-title" style="color: var(--accent-gold);">ตัวแปรตาม (Dependent Variable)</div>
+                                <div class="framework-box dependent">ระดับหนี้สาธารณะ<br>(Public Debt - DEBT)</div>
+                            </div>
+                        </div>
+                    </div>`
+            },
+            {
+                id: "method", title: "ข้อมูลและแบบจำลอง",
+                content: `
+                    <div class="content-section" id="sec-method">
+                        <div class="section-heading"><i class="fa-solid fa-database"></i> ข้อมูลที่ใช้ในการศึกษา</div>
+                        <p>ใช้ข้อมูลทุติยภูมิแบบอนุกรมเวลา (Time Series) เป็นข้อมูลรายปี ตั้งแต่ปี พ.ศ. 2543 - 2566 (รวมระยะเวลา 23 ปี) โดยวิเคราะห์แยกรายประเทศ:</p>
+                        <ul style="margin-top: 15px;">
+                            <li><strong>ตัวแปรตาม (Dependent Variable):</strong> ระดับหนี้สาธารณะ (Public Debt)</li>
+                            <li><strong>ตัวแปรอิสระ (Independent Variables):</strong> การเจริญเติบโตทางเศรษฐกิจ (GDPG), การลงทุนโดยตรงจากต่างประเทศ (FDI), ดุลการคลัง (FISCAL), อัตราแลกเปลี่ยน (EX), อัตราเงินเฟ้อ (INF), อัตราดอกเบี้ย (INT), รายได้ภาษีรัฐบาล (TAX) และภาระสินเชื่อภาคเอกชนจากธนาคาร (BPCS)</li>
+                        </ul>
+                        
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-chart-line"></i> แบบจำลองทางเศรษฐมิติ</div>
+                        <p>ใช้วิธีการวิเคราะห์สมการถดถอยเชิงซ้อน (Multiple Regression) โดยมีสมการหลักคือ:</p>
+                        
+                        <div style="background: var(--bg-main); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-top: 15px; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+                            DEBT<sub>it</sub> = β<sub>0</sub> + β<sub>1</sub>GDPG<sub>it</sub> + β<sub>2</sub>FDI<sub>it</sub> + β<sub>3</sub>FISCAL<sub>it</sub> + β<sub>4</sub>EX<sub>it</sub> + β<sub>5</sub>INF<sub>it</sub> + β<sub>6</sub>INT<sub>it</sub> + β<sub>7</sub>TAX<sub>it</sub> + β<sub>8</sub>BPCS<sub>it</sub> + ε<sub>it</sub>
+                        </div>
+
+                        <ul style="margin-top: 15px;">
+                            <li><strong>การตรวจสอบและแก้ไขปัญหาทางเศรษฐมิติ:</strong> 
+                                <br>- ตรวจสอบปัญหา Multicollinearity ด้วยค่า VIF (< 10) โดยได้ตัดตัวแปรที่มีปัญหาสูงเกินเกณฑ์ออกในแต่ละประเทศ (เช่น ตัด TAX ในมาเลเซีย, GDPG/FISCAL ในสิงคโปร์ และ GDPG ในไทย)
+                                <br>- ตรวจสอบปัญหา Autocorrelation ด้วยสถิติ Durbin-Watson (D.W.) และปรับแก้ด้วยวิธี AR(1), AR(2) ตามความเหมาะสม
+                            </li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "result", title: "ผลการศึกษา",
+                content: `
+                    <div class="content-section" id="sec-result">
+                        <div class="section-heading"><i class="fa-solid fa-chart-bar"></i> สถานการณ์ระดับหนี้สาธารณะ (พ.ศ. 2543 - 2566)</div>
+                        <p>ระดับหนี้สาธารณะของทั้ง 3 ประเทศมี <strong>แนวโน้มเพิ่มขึ้นอย่างต่อเนื่องในระยะยาว</strong> โดยในปี พ.ศ. 2566 มีมูลค่าดังนี้:</p>
+                        <ul>
+                            <li><strong>อันดับ 1 สิงคโปร์:</strong> สูงสุดที่ประมาณ 8.87 แสนล้านดอลลาร์สหรัฐ</li>
+                            <li><strong>อันดับ 2 ประเทศไทย:</strong> ประมาณ 3.15 แสนล้านดอลลาร์สหรัฐ</li>
+                            <li><strong>อันดับ 3 มาเลเซีย:</strong> ประมาณ 2.57 แสนล้านดอลลาร์สหรัฐ</li>
+                        </ul>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-square-poll-vertical"></i> ผลการวิเคราะห์ปัจจัยที่มีผลกระทบ</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ประเทศ</th>
+                                    <th>ปัจจัยที่มีนัยสำคัญทางสถิติ (Sig < 0.05)</th>
+                                    <th>ทิศทางความสัมพันธ์กับหนี้สาธารณะ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>มาเลเซีย</strong></td>
+                                    <td>การเจริญเติบโตทางเศรษฐกิจ (GDP Growth)</td>
+                                    <td><strong>เชิงบวก (+)</strong> รัฐบาลกู้ยืมเพื่อสนับสนุนการขยายตัวและการลงทุนช่วงกำลังพัฒนา</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="3"><strong>สิงคโปร์</strong></td>
+                                    <td>การลงทุนโดยตรงจากต่างประเทศ (FDI)</td>
+                                    <td><strong>เชิงบวก (+)</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>อัตราเงินเฟ้อ (Inflation)</td>
+                                    <td><strong>เชิงบวก (+)</strong> สอดคล้องกับสมมติฐาน</td>
+                                </tr>
+                                <tr>
+                                    <td>สินเชื่อภาคเอกชนจากธนาคาร (Private Credit)</td>
+                                    <td><strong>เชิงบวก (+)</strong> สอดคล้องกับสมมติฐาน</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ไทย</strong></td>
+                                    <td>รายได้ภาษีของรัฐบาล (Tax Revenue)</td>
+                                    <td><strong>เชิงลบ (-)</strong> เมื่อรายได้ภาษีเพิ่มขึ้น ภาครัฐมีเงินเพียงพอจึงกู้ยืมน้อยลง</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>`
+            },
+            {
+                id: "policy", title: "ข้อเสนอแนะ",
+                content: `
+                    <div class="content-section" id="sec-policy">
+                        <div class="section-heading"><i class="fa-solid fa-lightbulb"></i> ข้อเสนอแนะเชิงนโยบาย</div>
+                        <ul>
+                            <li><strong>กรอบวินัยการคลัง (ภาพรวม 3 ประเทศ):</strong> ระดับหนี้สาธารณะมีแนวโน้มเพิ่มขึ้นในระยะยาว โดยเฉพาะจากผลกระทบของวิกฤตเศรษฐกิจ ภาครัฐจึงควรกำหนดกรอบวินัยการคลังที่ชัดเจน ควบคุมการก่อหนี้ให้อยู่ในระดับที่เหมาะสมกับศักยภาพทางเศรษฐกิจ</li>
+                            <li><strong>สำหรับประเทศไทย:</strong> การวิเคราะห์พบว่า "รายได้ภาษี" เป็นปัจจัยสำคัญที่ช่วยลดระดับหนี้ได้ รัฐบาลจึงควรเพิ่มประสิทธิภาพการจัดเก็บภาษี ขยายฐานภาษีให้กว้างขึ้น และส่งเสริมเศรษฐกิจเพื่อสร้างรายได้ภาครัฐอย่างยั่งยืน ลดความจำเป็นในการกู้ยืม</li>
+                            <li><strong>การจัดการการลงทุน (FDI):</strong> ประเทศไทยสามารถเรียนรู้จากสิงคโปร์ โดยให้ความสำคัญกับการดึงดูด FDI ที่สร้างมูลค่าเพิ่มและมีประโยชน์ต่อเศรษฐกิจจริง พร้อมมีมาตรการส่งเสริมที่รอบคอบ เพื่อไม่ให้กระทบต่อภาระหนี้ในระยะยาว</li>
+                        </ul>
+                    </div>`
+            }
+        ],
+        "5": [
+            {
+                id: "intro", title: "ที่มาและวัตถุประสงค์",
+                content: `
+                    <div class="content-section" id="sec-intro">
+                        <!-- พื้นที่โชว์รูปคู่ (ผู้นำเสนอ & ที่ปรึกษา) บทความที่ 5 -->
+                        <div class="profile-group" style="display: flex; flex-wrap: wrap; align-items: center; gap: 25px; margin-bottom: 30px; padding: 20px; background: rgba(4, 120, 87, 0.05); border-radius: 12px; border: 1px solid rgba(4, 120, 87, 0.15);">
+                            
+                            <!-- 1. รูปนิสิตผู้นำเสนอ -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-student5').click()" title="คลิกเพื่อเลือกรูปผู้นำเสนอ">
+                                    <input type="file" id="upload-student5" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-student5', 'savedStudentImg5')">
+                                    <img id="img-student5" src="placeholder.jpg" alt="รูปผู้นำเสนอ" onerror="this.src='https://ui-avatars.com/api/?name=ภูนริช&background=047857&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-green); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--accent-gold); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--primary-green); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-microphone-lines"></i> ผู้นำเสนอผลงาน</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">ภูนริช เดชแก้ว</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+
+                            <div class="desktop-divider" style="width: 1px; height: 50px; background: rgba(4, 120, 87, 0.2); margin: 0 5px;"></div>
+
+                            <!-- 2. รูปอาจารย์ที่ปรึกษา -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; cursor: pointer;" onclick="document.getElementById('upload-advisor5').click()" title="คลิกเพื่อเลือกรูปอาจารย์ที่ปรึกษา">
+                                    <input type="file" id="upload-advisor5" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-advisor5', 'savedAdvisorImg5')">
+                                    <img id="img-advisor5" src="placeholder.jpg" alt="รูปอาจารย์ที่ปรึกษา" onerror="this.src='https://ui-avatars.com/api/?name=ธนากร&background=d97706&color=fff'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--primary-green); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; border: 2px solid #fff;"><i class="fa-solid fa-camera"></i></div>
+                                </div>
+                                <div>
+                                    <div style="font-family: 'Prompt', sans-serif; font-weight: 700; color: var(--accent-gold); font-size: 0.95rem; margin-bottom: 2px;"><i class="fa-solid fa-chalkboard-user"></i> อาจารย์ที่ปรึกษา</div>
+                                    <div style="color: var(--text-dark); font-weight: 600; font-size: 1.1rem;">อ.ธนากร แสนสาร</div>
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">มหาวิทยาลัยทักษิณ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-heading"><i class="fa-solid fa-earth-asia"></i> ที่มาและความสำคัญ</div>
+                        <p>การรักษาความมั่งคั่งเป็นการบริหารและจัดสรรสินทรัพย์เพื่อรักษามูลค่าของเงินทุนไม่ให้ลดลงจากความเสี่ยงต่างๆ เช่น เงินเฟ้อ หรือวิกฤตทางการเงิน โดยเฉพาะภายใต้สภาวะเศรษฐกิจที่มีความไม่แน่นอน ซึ่ง <strong>"ทองคำ"</strong> ได้รับการยอมรับมาอย่างยาวนานในฐานะสินทรัพย์ปลอดภัย (Safe Haven Asset) ที่สามารถรักษามูลค่าได้ดีในช่วงวิกฤต</p>
+                        <ul style="margin-top: 15px;">
+                            <li><span class="highlight">ความผันผวนของเศรษฐกิจ</span> ส่งผลกระทบโดยตรงต่อมูลค่าสินทรัพย์การลงทุนต่างๆ โดยเฉพาะปัจจัยด้านเงินเฟ้อที่ทำให้อำนาจซื้อลดลง</li>
+                            <li><span class="highlight">สินทรัพย์ทางเลือก</span> ในปัจจุบันมีผลิตภัณฑ์ทางการเงินใหม่ๆ เช่น ดัชนีตลาดหลักทรัพย์ และคริปโทเคอร์เรนซี (Stablecoins) ทำให้เกิดคำถามว่า ทองคำยังคงเป็นสินทรัพย์ปลอดภัยที่มีประสิทธิภาพดีที่สุดหรือไม่ เมื่อเทียบกับสินทรัพย์และตลาดการเงินรูปแบบอื่นๆ</li>
+                        </ul>
+
+                        <div class="question-box">
+                            <strong>คำถามการวิจัย:</strong> ทองคำยังคงมีคุณสมบัติเป็น "สินทรัพย์ปลอดภัย" ต่อความผันผวนของตลาดหลักทรัพย์ในบริบทปัจจุบันหรือไม่? และมีบทบาทอย่างไรเมื่อเปรียบเทียบกับตลาดการเงินโลก?
+                        </div>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-bullseye"></i> วัตถุประสงค์</div>
+                        <ul>
+                            <li>เพื่อทดสอบคุณสมบัติความเป็นสินทรัพย์ปลอดภัยของทองคำ</li>
+                            <li>เพื่อศึกษาผลตอบแทนเปรียบเทียบระหว่างทองคำกับดัชนีตลาดหลักทรัพย์และสินทรัพย์ปลอดภัยชนิดอื่น</li>
+                            <li>เพื่อวัดและประเมินความเสี่ยงของการจัด Portfolio ในภาวะความผันผวนของตลาดการเงิน</li>
+                        </ul>
+                    </div>`
+            },
+            {
+                id: "framework", title: "กรอบแนวคิด",
+                content: `
+                    <div class="content-section" id="sec-framework">
+                        <div class="section-heading"><i class="fa-solid fa-sitemap"></i> กรอบแนวคิดการวิจัย</div>
+                        
+                        <div class="framework-container-flex">
+                            <div class="framework-group">
+                                <div class="framework-group-title">ตัวแปรอิสระ (Independent Variables)</div>
+                                <div class="framework-box">ความผันผวนตลาดหุ้นไทย (sigma_set)</div>
+                                <div class="framework-box">ผลตอบแทนดัชนีหุ้นไทย (SET)</div>
+                                <div class="framework-box">ผลตอบแทนดัชนีหุ้นต่างประเทศ<br>(S&P500, STOXX600, China, Nikkei)</div>
+                                <div class="framework-box">การเปลี่ยนแปลงค่าเงินดอลลาร์ (USD)</div>
+                            </div>
+                            <div class="framework-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+                            <div class="framework-group" style="border-color: var(--accent-gold); background: #fefce8;">
+                                <div class="framework-group-title" style="color: var(--accent-gold);">ตัวแปรตาม (Dependent Variable)</div>
+                                <div class="framework-box dependent">อัตราผลตอบแทนของทองคำ<br>(Gold Return - ln_rgold)</div>
+                            </div>
+                        </div>
+                    </div>`
+            },
+            {
+                id: "method", title: "ข้อมูลและแบบจำลอง",
+                content: `
+                    <div class="content-section" id="sec-method">
+                        <div class="section-heading"><i class="fa-solid fa-database"></i> ข้อมูลและตัวแปรที่ใช้ในการศึกษา</div>
+                        <p>ใช้ข้อมูลทุติยภูมิในรูปแบบอนุกรมเวลา (Time Series Data) ความถี่รายเดือน ตั้งแต่ มีนาคม พ.ศ. 2544 - ธันวาคม พ.ศ. 2568 รวม 299 ตัวอย่าง โดยทำการแปลงข้อมูลให้อยู่ในรูปอัตราผลตอบแทนแบบลอการิทึม (Logarithmic Return) ตัวแปรประกอบด้วย:</p>
+                        
+                        <table class="data-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>ตัวแปร</th>
+                                    <th>ความหมาย</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><strong>ln_rgold</strong> (ตัวแปรตาม)</td><td>อัตราผลตอบแทนของราคาทองคำ</td></tr>
+                                <tr><td><strong>ln_rset</strong></td><td>อัตราผลตอบแทนของดัชนีตลาดหลักทรัพย์แห่งประเทศไทย (SET)</td></tr>
+                                <tr><td><strong>ln_rsp500</strong></td><td>อัตราผลตอบแทนของดัชนี S&P500 (สหรัฐอเมริกา)</td></tr>
+                                <tr><td><strong>ln_rstoxx</strong></td><td>อัตราผลตอบแทนของดัชนี STOXX600 (ยุโรป)</td></tr>
+                                <tr><td><strong>ln_rchina</strong></td><td>อัตราผลตอบแทนของดัชนี Shanghai Composite (จีน)</td></tr>
+                                <tr><td><strong>ln_rnikkei</strong></td><td>อัตราผลตอบแทนของดัชนี Nikkei 225 (ญี่ปุ่น)</td></tr>
+                                <tr><td><strong>ln_rusd</strong></td><td>อัตราการเปลี่ยนแปลงของดัชนีค่าเงินดอลลาร์</td></tr>
+                                <tr><td><strong>sigma_set</strong></td><td>ค่าความผันผวนของดัชนี SET ที่ได้จากแบบจำลอง GARCH</td></tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-chart-line"></i> แบบจำลองทางเศรษฐมิติ</div>
+                        
+                        <p><strong>1. แบบจำลองความผันผวน GARCH(1,1):</strong> ใช้เพื่อวัดระดับความผันผวนของตลาดหลักทรัพย์แห่งประเทศไทย (SET) โดยค่าความแปรปรวนที่ได้จะถูกนำมาใช้เป็นตัวแทนของความผันผวนของตลาด (sigma_set)</p>
+                        
+                        <p><strong>2. แบบจำลองถดถอยเชิงพหุคูณ (Multiple Linear Regression):</strong> ศึกษาความสัมพันธ์ระหว่างผลตอบแทนของทองคำกับตัวแปรทางการเงินอื่นๆ</p>
+                        
+                        <div style="background: var(--bg-main); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-top: 15px; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+                            ln_rgold<sub>t</sub> = β<sub>0</sub> + β<sub>1</sub>ln_rset<sub>t</sub> + β<sub>2</sub>sigma_set<sub>t</sub> + β<sub>3</sub>ln_rusd<sub>t</sub> + β<sub>4</sub>ln_rsp500<sub>t</sub> + β<sub>5</sub>ln_rstoxx<sub>t</sub> + β<sub>6</sub>ln_rchina<sub>t</sub> + β<sub>7</sub>ln_rnikkei<sub>t</sub> + ε<sub>t</sub>
+                        </div>
+
+                        <p style="margin-top: 15px;"><em>หมายเหตุ: แบบจำลองได้ผ่านการทดสอบปัญหาทางเศรษฐมิติ ได้แก่ การทดสอบความนิ่งของข้อมูล (ADF Test), Multicollinearity, Heteroskedasticity และได้แก้ไขโดยใช้วิธี Robust Standard Errors</em></p>
+                    </div>`
+            },
+            {
+                id: "result", title: "ผลการศึกษา",
+                content: `
+                    <div class="content-section" id="sec-result">
+                        <div class="section-heading"><i class="fa-solid fa-chart-bar"></i> สถิติเชิงพรรณนาและความผันผวน</div>
+                        <p>พบว่า <strong>ทองคำมีความผันผวนสูงที่สุด</strong> (Std. Dev. 0.0704) รองลงมาคือ ดัชนีหุ้นญี่ปุ่น และดัชนีหุ้นจีน ตามลำดับ ในขณะที่ดัชนีตลาดหลักทรัพย์ไทย (SET) มีความผันผวนต่ำกว่าตลาดหุ้นต่างประเทศ นอกจากนี้ แบบจำลอง GARCH แสดงให้เห็นว่าความผันผวนในตลาดหุ้นไทยมีการสืบทอดอย่างต่อเนื่อง (Volatility Persistence สูง)</p>
+
+                        <!-- กรอบสำหรับใส่รูปกราฟของบทความ 5 -->
+                        <div class="results-img-grid" style="margin-top: 20px;">
+                            <div class="results-img-card" onclick="document.getElementById('upload-graph-gold1').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟราคาปิด">
+                                <input type="file" id="upload-graph-gold1" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-graph-gold1', 'savedImgGold1')">
+                                <img id="img-graph-gold1" src="placeholder.jpg" alt="กราฟราคาปิดของแต่ละสินทรัพย์" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟราคาปิด'">
+                                <div class="results-img-caption">การเปรียบเทียบราคาปิดของสินทรัพย์<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Closing Price Comparison)</span></div>
+                            </div>
+                            <div class="results-img-card" onclick="document.getElementById('upload-graph-gold2').click()" title="คลิกเพื่อเปลี่ยนรูปกราฟผลตอบแทนเฉลี่ย">
+                                <input type="file" id="upload-graph-gold2" style="display:none;" accept="image/*" onchange="uploadAndSaveImage(this, 'img-graph-gold2', 'savedImgGold2')">
+                                <img id="img-graph-gold2" src="placeholder.jpg" alt="สรุปผลตอบแทนเฉลี่ยรายเดือน" onerror="this.src='https://placehold.co/400x300/e2e8f0/047857?text=คลิกที่นี่\\nเพื่อใส่รูปกราฟผลตอบแทน'">
+                                <div class="results-img-caption">สรุปผลตอบแทนเฉลี่ยรายเดือน<br><span style="color:#64748b; font-size:0.85rem; font-weight:400;">(Monthly Average Returns)</span></div>
+                            </div>
+                        </div>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-square-poll-vertical"></i> ผลการวิเคราะห์สมการถดถอย (OLS Robust Regression)</div>
+                        <p>จากการทดสอบความสัมพันธ์ระหว่างผลตอบแทนของทองคำกับตัวแปรอื่นๆ พบข้อมูลที่น่าสนใจดังนี้:</p>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ตัวแปรอิสระ</th>
+                                    <th>ทิศทางความสัมพันธ์</th>
+                                    <th>คำอธิบาย</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>ดัชนีตลาดหุ้นจีน (ln_rchina)</strong></td>
+                                    <td><strong style="color:var(--primary-green);">เชิงบวก (Sig 0.01)</strong></td>
+                                    <td>มีบทบาทสำคัญต่อการเคลื่อนไหวของราคาทองคำในระดับสูงมาก</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ดัชนีตลาดหุ้นสหรัฐฯ (ln_rsp500)</strong></td>
+                                    <td><strong style="color:var(--primary-green);">เชิงบวก (Sig 0.05)</strong></td>
+                                    <td>สะท้อนว่าตลาดสหรัฐฯ ซึ่งเป็นศูนย์กลางการเงินโลก มีอิทธิพลทิศทางเดียวกับผลตอบแทนทองคำ</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ค่าเงินดอลลาร์สหรัฐ (ln_rusd)</strong></td>
+                                    <td><strong style="color:var(--primary-green);">เชิงบวก (Sig 0.10)</strong></td>
+                                    <td>การแข็งค่าของดอลลาร์ส่งผลให้ผลตอบแทนทองคำเพิ่มขึ้นตาม (สัมพันธ์ระดับ 10%)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ตลาดหลักทรัพย์ไทย (ln_rset)</strong></td>
+                                    <td>ไม่มีนัยสำคัญ</td>
+                                    <td>การเปลี่ยนแปลงของตลาดหุ้นไทยไม่ได้มีอิทธิพลต่อผลตอบแทนทองคำอย่างชัดเจน</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ความผันผวนตลาดหุ้นไทย (sigma_set)</strong></td>
+                                    <td>ไม่มีนัยสำคัญ</td>
+                                    <td>ทองคำไม่ได้ทำหน้าที่เป็นสินทรัพย์ปลอดภัย (Safe Haven) ต่อความผันผวนของตลาดหุ้นไทยอย่างชัดเจน</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>`
+            },
+            {
+                id: "policy", title: "ข้อเสนอแนะ",
+                content: `
+                    <div class="content-section" id="sec-policy">
+                        <div class="section-heading"><i class="fa-solid fa-comments"></i> สรุปและอภิปรายผล</div>
+                        <p>ผลการศึกษาชี้ให้เห็นว่า ราคาทองคำในบริบทของประเทศไทยมีความเชื่อมโยงกับปัจจัยตลาดโลก (เช่น สหรัฐฯ และจีน) มากกว่าปัจจัยภายในประเทศ <strong>ทองคำไม่ได้ทำหน้าที่เป็นสินทรัพย์ปลอดภัย (Safe Haven) อย่างสมบูรณ์</strong> ต่อความผันผวนของตลาดหุ้นไทยในทุกช่วงเวลา แต่มีบทบาทสำคัญในฐานะ <strong>สินทรัพย์เพื่อการกระจายความเสี่ยง (Diversifier)</strong> เนื่องจากมีพฤติกรรมการเคลื่อนไหวที่แตกต่างจากตลาดหุ้นไทย</p>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-lightbulb"></i> ข้อเสนอแนะเชิงนโยบายและการลงทุน</div>
+                        <ul>
+                            <li><strong>กลยุทธ์สำหรับนักลงทุน:</strong> ควรใช้ทองคำเป็นเครื่องมือเพื่อ "กระจายความเสี่ยง" ของพอร์ตการลงทุน (Diversification) มากกว่าการมองว่าเป็นหลุมหลบภัย (Safe Haven) เพียงอย่างเดียว</li>
+                            <li><strong>การวิเคราะห์ทิศทางทองคำ:</strong> ควรให้ความสำคัญกับการวิเคราะห์ปัจจัยจากตลาดการเงินโลกขนาดใหญ่ โดยเฉพาะสหรัฐอเมริกา และจีน ซึ่งมีอิทธิพลโดยตรงต่อราคาทองคำ มากกว่าปัจจัยภายในประเทศ</li>
+                            <li><strong>ระดับนโยบายภาครัฐ:</strong> ผู้กำหนดนโยบายควรให้ความสำคัญกับบทบาทของทองคำในฐานะสินทรัพย์สำรองของประเทศ เพราะแม้จะไม่ป้องกันความเสี่ยงจากตลาดหุ้นไทยได้ 100% แต่ก็ช่วยเสริมเสถียรภาพและลดความเสี่ยงโดยรวมในสภาวะวิกฤตได้</li>
+                        </ul>
+
+                        <div class="section-heading" style="margin-top: 30px;"><i class="fa-solid fa-magnifying-glass"></i> ข้อเสนอแนะเพื่องานวิจัยครั้งต่อไป</div>
+                        <ul>
+                            <li>ควรศึกษาเจาะลึกเฉพาะช่วงเวลาที่เกิดวิกฤต เช่น วิกฤตโควิด-19 (COVID-19) หรือวิกฤตการเงินโลก เพื่อดูพฤติกรรม Safe Haven ในภาวะตื่นตระหนก</li>
+                            <li>ควรเปรียบเทียบทองคำกับสินทรัพย์ทางเลือกในยุคดิจิทัลรูปแบบอื่น ๆ เช่น คริปโทเคอร์เรนซี (Bitcoin, Stablecoins) หรือพันธบัตรรัฐบาล</li>
+                        </ul>
+                    </div>`
+            }
+        ]
+    };
+
+    // --- Side Panel Logic ---
+    const sidePanel = document.getElementById('sidePanel');
+    const panelOverlay = document.getElementById('panelOverlay');
+    const closePanelBtn = document.getElementById('closePanel');
+    const panelTabs = document.getElementById('panelTabs');
+    const panelContent = document.getElementById('panelContent');
+
+    document.querySelectorAll('.article-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const articleId = this.getAttribute('data-id');
+            currentArticleTitle = this.querySelector('.article-title').textContent.replace(/\[รอข้อมูลบทความที่ \d+\] /g, '');
+            currentArticleAuthor = this.querySelector('.article-author').textContent.trim();
+            
+            document.getElementById('panelTitle').textContent = currentArticleTitle;
+            document.getElementById('panelAuthor').innerHTML = this.querySelector('.article-author').innerHTML;
+            
+            // Build Tabs & Content
+            panelTabs.innerHTML = '';
+            panelContent.innerHTML = '';
+            const data = researchData[articleId];
+
+            if (data && data.length > 0) {
+                // Generate Standard Tabs
+                data.forEach((tab, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = `p-tab ${index === 0 ? 'active' : ''}`;
+                    btn.id = `tab-${tab.id}`;
+                    btn.textContent = tab.title;
+                    btn.onclick = () => {
+                        const target = document.getElementById(`sec-${tab.id}`);
+                        if(target) {
+                            panelContent.scrollTo({
+                                top: target.offsetTop - panelContent.offsetTop - 20,
+                                behavior: 'smooth'
+                            });
+                        }
+                    };
+                    panelTabs.appendChild(btn);
+
+                    // สร้างเนื้อหาและแทนที่รูปจาก LocalStorage เข้าไปในโค้ดเลยทันที (แก้ปัญหาเปิดมาแล้วรูปแหว่ง/กระพริบ)
+                    let finalContent = tab.content;
+                    const imgReplacements = [
+                        // ของบทความ 1
+                        { id: 'img-student', key: 'savedStudentImg' },
+                        { id: 'img-advisor', key: 'savedAdvisorImg' },
+                        { id: 'img-saudi', key: 'savedImgSaudi' },
+                        { id: 'img-singapore', key: 'savedImgSingapore' },
+                        { id: 'img-japan', key: 'savedImgJapan' },
+                        { id: 'img-eu', key: 'savedImgEU' }, 
+                        { id: 'img-oecd', key: 'savedImgOECD' },
+                        // ของบทความ 2
+                        { id: 'img-student2', key: 'savedStudentImg2' },
+                        { id: 'img-advisor2', key: 'savedAdvisorImg2' },
+                        { id: 'img-forecast-prod2', key: 'savedImgForecastProd2' },
+                        { id: 'img-forecast-import2', key: 'savedImgForecastImport2' },
+                        { id: 'img-forecast-diesel2', key: 'savedImgForecastDiesel2' },
+                        { id: 'img-forecast-gasoline2', key: 'savedImgForecastGasoline2' },
+                        // ของบทความ 3
+                        { id: 'img-student3', key: 'savedStudentImg3' },
+                        { id: 'img-advisor3', key: 'savedAdvisorImg3' },
+                        { id: 'img-graph-hap1', key: 'savedImgHap1' },
+                        // ของบทความ 4
+                        { id: 'img-student4', key: 'savedStudentImg4' },
+                        { id: 'img-advisor4', key: 'savedAdvisorImg4' },
+                        // ของบทความ 5
+                        { id: 'img-student5', key: 'savedStudentImg5' },
+                        { id: 'img-advisor5', key: 'savedAdvisorImg5' },
+                        { id: 'img-graph-gold1', key: 'savedImgGold1' },
+                        { id: 'img-graph-gold2', key: 'savedImgGold2' }
+                    ];
+                    
+                    imgReplacements.forEach(item => {
+                        const savedImg = localStorage.getItem(item.key);
+                        if (savedImg) {
+                            // ใช้ Regex เปลี่ยน src เฉพาะ element ที่มี id ตรงกัน
+                            const regex = new RegExp(`(id="${item.id}"[^>]*src=")[^"]*(")`, 'g');
+                            finalContent = finalContent.replace(regex, `$1${savedImg}$2`);
+                        }
+                    });
+
+                    // Append Content
+                    panelContent.innerHTML += finalContent;
+                });
+            }
+
+            // Open Panel
+            sidePanel.classList.add('open');
+            panelOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // Scroll Spy for Tabs
+    document.getElementById('panelContent').addEventListener('scroll', function() {
+        const sections = this.querySelectorAll('.content-section');
+        let currentId = '';
+
+        sections.forEach(sec => {
+            const secTop = sec.offsetTop - this.offsetTop;
+            if (this.scrollTop >= secTop - 80) {
+                currentId = sec.getAttribute('id').replace('sec-', '');
+            }
+        });
+
+        if (currentId) {
+            document.querySelectorAll('.p-tab').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.id === `tab-${currentId}`) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+    });
+
+    // Close Panel functions
+    function closePanel() {
+        sidePanel.classList.remove('open');
+        panelOverlay.classList.remove('show');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('closePanel').addEventListener('click', closePanel);
+    panelOverlay.addEventListener('click', closePanel);
+
+</script>
+</body>
+</html>
